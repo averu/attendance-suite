@@ -1,0 +1,32 @@
+node_modules/
+dist/
+build/
+.output/
+.tanstack/
+.nitro/
+.vite/
+coverage/
+
+# env (only commit .env.example)
+.env
+.env.*.local
+.env.local
+
+# editor
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Claude Code (local-only)
+.claude/settings.local.json
+.claude/.history/
