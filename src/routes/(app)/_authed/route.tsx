@@ -18,6 +18,7 @@ import {
   Settings,
   LogOut,
   Loader2,
+  UserCircle,
 } from 'lucide-react'
 import { authClient } from '@/features/auth'
 import { Button } from '@/shared/ui/button'
@@ -80,6 +81,9 @@ function AuthedLayout() {
           </NavLink>
           <NavLink to="/leaves" icon={<Plane className="size-4" />}>
             休暇申請
+          </NavLink>
+          <NavLink to="/profile" icon={<UserCircle className="size-4" />}>
+            プロファイル
           </NavLink>
         </nav>
 

@@ -1,4 +1,5 @@
-export { summaryQueries } from './queries'
+export { summaryQueries, type MyMonthlySummary } from './queries'
 export { useToggleMonthlyLock } from './mutations'
 export { MonthlySummaryTable } from './components/MonthlySummaryTable'
+export { MyMonthlySummaryCard } from './components/MyMonthlySummaryCard'
 export type { OrgMonthlySummary, MemberMonthlySummary } from './types'

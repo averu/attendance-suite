@@ -1,18 +1,23 @@
-import { and, asc, between, eq, inArray, isNull } from 'drizzle-orm'
+import { and, asc, between, desc, eq, gte, inArray, isNull, lt } from 'drizzle-orm'
 import { db } from '@/shared/lib/db.server'
 import {
+  attendanceAudits,
   breaks,
   memberships,
   monthlyLocks,
   timeEntries,
+  users,
   type Break as BreakRow,
   type TimeEntry as TimeEntryRow,
 } from '@/db/schema'
 import type { ApiCallerContext } from '@/shared/server/apiAuth'
 import { today } from '@/shared/lib/datetime'
 import type {
+  AuditLogEntry,
+  AuditSnapshot,
   BreakInterval,
   DailyTotal,
+  OpenReminder,
   TimeEntry,
   TimeEntryStatus,
   TodayStatus,
@@ -306,6 +311,18 @@ function deriveStatus(
   return 'not_started'
 }
 
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0]
+
+async function snapshotEntry(tx: Tx, entry: TimeEntryRow): Promise<{
+  entry: ReturnType<typeof toTimeEntryDTO>
+}> {
+  const breakRows = await tx
+    .select()
+    .from(breaks)
+    .where(eq(breaks.timeEntryId, entry.id))
+  return { entry: toTimeEntryDTO(entry, breakRows) }
+}
+
 export async function editAttendanceEntryHandler(
   ctx: ApiCallerContext,
   input: EditAttendanceEntryInput,
@@ -351,7 +368,7 @@ export async function editAttendanceEntryHandler(
     throw e
   }
 
-  // 4) upsert + breaks 全置換 (transaction)
+  // 4) upsert + breaks 全置換 + 監査ログ書き込み (transaction)
   const status = deriveStatus(input.clockInAt, input.clockOutAt)
   const entryId = await db.transaction(async (tx) => {
     const existing = await tx
@@ -364,10 +381,16 @@ export async function editAttendanceEntryHandler(
         ),
       )
       .limit(1)
-    let id: string
+    // 編集前の snapshot を取る (監査ログ用)
+    const beforeSnapshot = existing[0]
+      ? await snapshotEntry(tx, existing[0])
+      : null
+
+    let afterEntry: TimeEntryRow
+    let action: 'edit' | 'create'
     if (existing[0]) {
-      id = existing[0].id
-      await tx
+      action = 'edit'
+      const [updated] = await tx
         .update(timeEntries)
         .set({
           clockInAt: input.clockInAt ? new Date(input.clockInAt) : null,
@@ -376,8 +399,12 @@ export async function editAttendanceEntryHandler(
           noteForUser: input.note ?? existing[0].noteForUser,
           updatedAt: new Date(),
         })
-        .where(eq(timeEntries.id, id))
+        .where(eq(timeEntries.id, existing[0].id))
+        .returning()
+      if (!updated) throw new Error('time_entry update failed')
+      afterEntry = updated
     } else {
+      action = 'create'
       const [created] = await tx
         .insert(timeEntries)
         .values({
@@ -391,8 +418,9 @@ export async function editAttendanceEntryHandler(
         })
         .returning()
       if (!created) throw new Error('time_entry insert failed')
-      id = created.id
+      afterEntry = created
     }
+    const id = afterEntry.id
     // breaks 全置換
     await tx.delete(breaks).where(eq(breaks.timeEntryId, id))
     for (const b of input.breaks) {
@@ -402,6 +430,20 @@ export async function editAttendanceEntryHandler(
         endAt: new Date(b.endAt),
       })
     }
+
+    // 編集後の snapshot (再 SELECT 不要、afterEntry は最新の time_entry。breaks は再 fetch)
+    const afterSnapshot = await snapshotEntry(tx, afterEntry)
+    await tx.insert(attendanceAudits).values({
+      organizationId: ctx.organization.id,
+      targetUserId: input.userId,
+      workDate: input.workDate,
+      actorUserId: ctx.user.id,
+      action,
+      beforeJson: beforeSnapshot,
+      afterJson: afterSnapshot,
+      note: input.note ?? null,
+    })
+
     return id
   })
 
@@ -416,4 +458,79 @@ export async function editAttendanceEntryHandler(
     .from(breaks)
     .where(eq(breaks.timeEntryId, entryId))
   return { entry: toTimeEntryDTO(updated, breakRows) }
+}
+
+// ----- 監査ログ閲覧 (admin+ 限定) -----
+
+export async function listAttendanceAuditsHandler(
+  ctx: ApiCallerContext,
+  userId: string,
+  workDate: string,
+): Promise<AuditLogEntry[]> {
+  const rows = await db
+    .select({ a: attendanceAudits, u: users })
+    .from(attendanceAudits)
+    .innerJoin(users, eq(users.id, attendanceAudits.actorUserId))
+    .where(
+      and(
+        eq(attendanceAudits.organizationId, ctx.organization.id),
+        eq(attendanceAudits.targetUserId, userId),
+        eq(attendanceAudits.workDate, workDate),
+      ),
+    )
+    .orderBy(desc(attendanceAudits.at))
+  return rows.map((r) => ({
+    id: r.a.id,
+    workDate: r.a.workDate,
+    action: r.a.action as 'edit' | 'create',
+    actorUserId: r.a.actorUserId,
+    actorName: r.u.name,
+    before: r.a.beforeJson as AuditSnapshot | null,
+    after: r.a.afterJson as AuditSnapshot | null,
+    note: r.a.note,
+    at: r.a.at.toISOString(),
+  }))
+}
+
+// ----- 退勤忘れリマインダー -----
+
+/**
+ * 自分の過去 14 日 (今日含めず) で clock_out が無い entry を返す。
+ * 「working / on_break のまま放置」「打刻忘れ」検知用。
+ */
+export async function listMyOpenRemindersHandler(
+  ctx: ApiCallerContext,
+): Promise<OpenReminder[]> {
+  const todayStr = today()
+  const fourteenDaysAgo = new Date(
+    Date.UTC(
+      Number(todayStr.slice(0, 4)),
+      Number(todayStr.slice(5, 7)) - 1,
+      Number(todayStr.slice(8, 10)) - 14,
+    ),
+  )
+  const fromStr = fourteenDaysAgo.toISOString().slice(0, 10)
+
+  // 今日は除外して取得 (退勤忘れ判定は前日以前のみ意味がある)
+  const rows = await db
+    .select()
+    .from(timeEntries)
+    .where(
+      and(
+        eq(timeEntries.organizationId, ctx.organization.id),
+        eq(timeEntries.userId, ctx.user.id),
+        gte(timeEntries.workDate, fromStr),
+        lt(timeEntries.workDate, todayStr),
+        isNull(timeEntries.clockOutAt),
+      ),
+    )
+    .orderBy(asc(timeEntries.workDate))
+
+  return rows
+    .filter((r) => r.clockInAt !== null)
+    .map((r) => ({
+      workDate: r.workDate,
+      clockInAt: (r.clockInAt as Date).toISOString(),
+      status: r.status as TimeEntryStatus,
+    }))
 }

@@ -31,3 +31,27 @@ export type DailyTotal = {
   workingMinutes: number
   breakMinutes: number
 }
+
+// 監査ログ snapshot のボディ
+export type AuditSnapshot = {
+  entry: TimeEntry
+}
+
+export type AuditLogEntry = {
+  id: string
+  workDate: string
+  action: 'edit' | 'create'
+  actorUserId: string
+  actorName: string
+  before: AuditSnapshot | null
+  after: AuditSnapshot | null
+  note: string | null
+  at: string // ISO
+}
+
+// 退勤忘れリマインダー (server/client 共有)
+export type OpenReminder = {
+  workDate: string
+  clockInAt: string
+  status: TimeEntryStatus
+}

@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { Users } from 'lucide-react'
+import { CalendarOff, Users } from 'lucide-react'
 import { OrganizationSettings } from '@/features/organization'
 import { Button } from '@/shared/ui/button'
 
@@ -15,12 +15,20 @@ function SettingsScreen() {
           <h1 className="text-2xl font-bold tracking-tight">組織設定</h1>
           <p className="text-muted-foreground">組織情報の管理</p>
         </div>
-        <Button asChild variant="outline">
-          <Link to="/admin/settings/members">
-            <Users />
-            メンバー管理
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button asChild variant="outline">
+            <Link to="/admin/settings/members">
+              <Users />
+              メンバー管理
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link to="/admin/settings/holidays">
+              <CalendarOff />
+              公休/祝日
+            </Link>
+          </Button>
+        </div>
       </header>
       <OrganizationSettings />
     </section>

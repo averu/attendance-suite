@@ -1,6 +1,12 @@
 import { queryOptions } from '@tanstack/react-query'
 import { getJson } from '@/shared/lib/apiClient'
-import type { DailyTotal, TimeEntry, TodayStatus } from './types'
+import type {
+  AuditLogEntry,
+  DailyTotal,
+  OpenReminder,
+  TimeEntry,
+  TodayStatus,
+} from './types'
 
 export const attendanceQueries = {
   today: () =>
@@ -32,5 +38,24 @@ export const attendanceQueries = {
         )
       },
       select: (d) => d.entry,
+    }),
+  audits: (userId: string, workDate: string) =>
+    queryOptions({
+      queryKey: ['attendance', 'audits', { userId, workDate }],
+      queryFn: () => {
+        const params = new URLSearchParams({ userId, workDate })
+        return getJson<{ items: AuditLogEntry[] }>(
+          `/api/attendance/audits?${params.toString()}`,
+        )
+      },
+      select: (d) => d.items,
+    }),
+  reminders: () =>
+    queryOptions({
+      queryKey: ['attendance', 'reminders'],
+      queryFn: () =>
+        getJson<{ items: OpenReminder[] }>('/api/attendance/reminders'),
+      select: (d) => d.items,
+      staleTime: 60_000,
     }),
 }

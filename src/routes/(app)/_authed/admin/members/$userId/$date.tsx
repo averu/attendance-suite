@@ -5,6 +5,7 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import {
   AttendanceDayDetail,
   AttendanceEditForm,
+  AuditLogList,
   attendanceQueries,
 } from '@/features/attendance'
 import { Button } from '@/shared/ui/button'
@@ -64,6 +65,16 @@ function DayDetailWithEdit({
         workDate={workDate}
         initialEntry={entry}
       />
+      <Suspense
+        fallback={
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="size-4 animate-spin" />
+            履歴を読み込み中…
+          </div>
+        }
+      >
+        <AuditLogList userId={userId} workDate={workDate} />
+      </Suspense>
     </div>
   )
 }

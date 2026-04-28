@@ -15,8 +15,11 @@ import { Route as ApiBootstrapOrgRouteImport } from './routes/api/bootstrap-org'
 import { Route as publicSignupRouteImport } from './routes/(public)/signup'
 import { Route as publicLoginRouteImport } from './routes/(public)/login'
 import { Route as appAuthedRouteRouteImport } from './routes/(app)/_authed/route'
+import { Route as ApiHolidaysIndexRouteImport } from './routes/api/holidays/index'
 import { Route as ApiSummaryMonthlyRouteImport } from './routes/api/summary/monthly'
+import { Route as ApiSummaryMineRouteImport } from './routes/api/summary/mine'
 import { Route as ApiSummaryLockRouteImport } from './routes/api/summary/lock'
+import { Route as ApiSummaryCsvRouteImport } from './routes/api/summary/csv'
 import { Route as ApiOrganizationUpdateRouteImport } from './routes/api/organization/update'
 import { Route as ApiOrganizationRemoveMemberRouteImport } from './routes/api/organization/remove-member'
 import { Route as ApiOrganizationMembersRouteImport } from './routes/api/organization/members'
@@ -29,6 +32,8 @@ import { Route as ApiLeaveRequestsListMineRouteImport } from './routes/api/leave
 import { Route as ApiLeaveRequestsCreateRouteImport } from './routes/api/leave-requests/create'
 import { Route as ApiLeaveRequestsCancelRouteImport } from './routes/api/leave-requests/cancel'
 import { Route as ApiLeaveRequestsApproveRouteImport } from './routes/api/leave-requests/approve'
+import { Route as ApiHolidaysDeleteRouteImport } from './routes/api/holidays/delete'
+import { Route as ApiHolidaysCreateRouteImport } from './routes/api/holidays/create'
 import { Route as ApiCorrectionRequestsRejectRouteImport } from './routes/api/correction-requests/reject'
 import { Route as ApiCorrectionRequestsListOrgRouteImport } from './routes/api/correction-requests/list-org'
 import { Route as ApiCorrectionRequestsListMineRouteImport } from './routes/api/correction-requests/list-mine'
@@ -37,6 +42,7 @@ import { Route as ApiCorrectionRequestsCancelRouteImport } from './routes/api/co
 import { Route as ApiCorrectionRequestsApproveRouteImport } from './routes/api/correction-requests/approve'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiAttendanceTodayRouteImport } from './routes/api/attendance/today'
+import { Route as ApiAttendanceRemindersRouteImport } from './routes/api/attendance/reminders'
 import { Route as ApiAttendanceListRouteImport } from './routes/api/attendance/list'
 import { Route as ApiAttendanceEditEntryRouteImport } from './routes/api/attendance/edit-entry'
 import { Route as ApiAttendanceDetailRouteImport } from './routes/api/attendance/detail'
@@ -44,7 +50,9 @@ import { Route as ApiAttendanceClockOutRouteImport } from './routes/api/attendan
 import { Route as ApiAttendanceClockInRouteImport } from './routes/api/attendance/clock-in'
 import { Route as ApiAttendanceBreakStartRouteImport } from './routes/api/attendance/break-start'
 import { Route as ApiAttendanceBreakEndRouteImport } from './routes/api/attendance/break-end'
+import { Route as ApiAttendanceAuditsRouteImport } from './routes/api/attendance/audits'
 import { Route as publicInviteTokenRouteImport } from './routes/(public)/invite.$token'
+import { Route as appAuthedProfileRouteImport } from './routes/(app)/_authed/profile'
 import { Route as appAuthedDashboardRouteImport } from './routes/(app)/_authed/dashboard'
 import { Route as appAuthedAdminRouteRouteImport } from './routes/(app)/_authed/admin/route'
 import { Route as appAuthedRequestsIndexRouteImport } from './routes/(app)/_authed/requests/index'
@@ -60,6 +68,7 @@ import { Route as appAuthedAdminSettingsRouteRouteImport } from './routes/(app)/
 import { Route as appAuthedAdminSettingsIndexRouteImport } from './routes/(app)/_authed/admin/settings/index'
 import { Route as appAuthedAdminMembersIndexRouteImport } from './routes/(app)/_authed/admin/members/index'
 import { Route as appAuthedAdminSettingsMembersRouteImport } from './routes/(app)/_authed/admin/settings/members'
+import { Route as appAuthedAdminSettingsHolidaysRouteImport } from './routes/(app)/_authed/admin/settings/holidays'
 import { Route as appAuthedAdminMembersUserIdIndexRouteImport } from './routes/(app)/_authed/admin/members/$userId/index'
 import { Route as appAuthedAdminMembersUserIdDateRouteImport } from './routes/(app)/_authed/admin/members/$userId/$date'
 
@@ -92,14 +101,29 @@ const appAuthedRouteRoute = appAuthedRouteRouteImport.update({
   id: '/(app)/_authed',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiHolidaysIndexRoute = ApiHolidaysIndexRouteImport.update({
+  id: '/api/holidays/',
+  path: '/api/holidays/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiSummaryMonthlyRoute = ApiSummaryMonthlyRouteImport.update({
   id: '/api/summary/monthly',
   path: '/api/summary/monthly',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiSummaryMineRoute = ApiSummaryMineRouteImport.update({
+  id: '/api/summary/mine',
+  path: '/api/summary/mine',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiSummaryLockRoute = ApiSummaryLockRouteImport.update({
   id: '/api/summary/lock',
   path: '/api/summary/lock',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSummaryCsvRoute = ApiSummaryCsvRouteImport.update({
+  id: '/api/summary/csv',
+  path: '/api/summary/csv',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiOrganizationUpdateRoute = ApiOrganizationUpdateRouteImport.update({
@@ -167,6 +191,16 @@ const ApiLeaveRequestsApproveRoute = ApiLeaveRequestsApproveRouteImport.update({
   path: '/api/leave-requests/approve',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiHolidaysDeleteRoute = ApiHolidaysDeleteRouteImport.update({
+  id: '/api/holidays/delete',
+  path: '/api/holidays/delete',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHolidaysCreateRoute = ApiHolidaysCreateRouteImport.update({
+  id: '/api/holidays/create',
+  path: '/api/holidays/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCorrectionRequestsRejectRoute =
   ApiCorrectionRequestsRejectRouteImport.update({
     id: '/api/correction-requests/reject',
@@ -213,6 +247,11 @@ const ApiAttendanceTodayRoute = ApiAttendanceTodayRouteImport.update({
   path: '/api/attendance/today',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAttendanceRemindersRoute = ApiAttendanceRemindersRouteImport.update({
+  id: '/api/attendance/reminders',
+  path: '/api/attendance/reminders',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAttendanceListRoute = ApiAttendanceListRouteImport.update({
   id: '/api/attendance/list',
   path: '/api/attendance/list',
@@ -248,10 +287,20 @@ const ApiAttendanceBreakEndRoute = ApiAttendanceBreakEndRouteImport.update({
   path: '/api/attendance/break-end',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAttendanceAuditsRoute = ApiAttendanceAuditsRouteImport.update({
+  id: '/api/attendance/audits',
+  path: '/api/attendance/audits',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const publicInviteTokenRoute = publicInviteTokenRouteImport.update({
   id: '/(public)/invite/$token',
   path: '/invite/$token',
   getParentRoute: () => rootRouteImport,
+} as any)
+const appAuthedProfileRoute = appAuthedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => appAuthedRouteRoute,
 } as any)
 const appAuthedDashboardRoute = appAuthedDashboardRouteImport.update({
   id: '/dashboard',
@@ -333,6 +382,12 @@ const appAuthedAdminSettingsMembersRoute =
     path: '/members',
     getParentRoute: () => appAuthedAdminSettingsRouteRoute,
   } as any)
+const appAuthedAdminSettingsHolidaysRoute =
+  appAuthedAdminSettingsHolidaysRouteImport.update({
+    id: '/holidays',
+    path: '/holidays',
+    getParentRoute: () => appAuthedAdminSettingsRouteRoute,
+  } as any)
 const appAuthedAdminMembersUserIdIndexRoute =
   appAuthedAdminMembersUserIdIndexRouteImport.update({
     id: '/members/$userId/',
@@ -354,7 +409,9 @@ export interface FileRoutesByFullPath {
   '/': typeof publicIndexRoute
   '/admin': typeof appAuthedAdminRouteRouteWithChildren
   '/dashboard': typeof appAuthedDashboardRoute
+  '/profile': typeof appAuthedProfileRoute
   '/invite/$token': typeof publicInviteTokenRoute
+  '/api/attendance/audits': typeof ApiAttendanceAuditsRoute
   '/api/attendance/break-end': typeof ApiAttendanceBreakEndRoute
   '/api/attendance/break-start': typeof ApiAttendanceBreakStartRoute
   '/api/attendance/clock-in': typeof ApiAttendanceClockInRoute
@@ -362,6 +419,7 @@ export interface FileRoutesByFullPath {
   '/api/attendance/detail': typeof ApiAttendanceDetailRoute
   '/api/attendance/edit-entry': typeof ApiAttendanceEditEntryRoute
   '/api/attendance/list': typeof ApiAttendanceListRoute
+  '/api/attendance/reminders': typeof ApiAttendanceRemindersRoute
   '/api/attendance/today': typeof ApiAttendanceTodayRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/correction-requests/approve': typeof ApiCorrectionRequestsApproveRoute
@@ -370,6 +428,8 @@ export interface FileRoutesByFullPath {
   '/api/correction-requests/list-mine': typeof ApiCorrectionRequestsListMineRoute
   '/api/correction-requests/list-org': typeof ApiCorrectionRequestsListOrgRoute
   '/api/correction-requests/reject': typeof ApiCorrectionRequestsRejectRoute
+  '/api/holidays/create': typeof ApiHolidaysCreateRoute
+  '/api/holidays/delete': typeof ApiHolidaysDeleteRoute
   '/api/leave-requests/approve': typeof ApiLeaveRequestsApproveRoute
   '/api/leave-requests/cancel': typeof ApiLeaveRequestsCancelRoute
   '/api/leave-requests/create': typeof ApiLeaveRequestsCreateRoute
@@ -382,8 +442,11 @@ export interface FileRoutesByFullPath {
   '/api/organization/members': typeof ApiOrganizationMembersRoute
   '/api/organization/remove-member': typeof ApiOrganizationRemoveMemberRoute
   '/api/organization/update': typeof ApiOrganizationUpdateRoute
+  '/api/summary/csv': typeof ApiSummaryCsvRoute
   '/api/summary/lock': typeof ApiSummaryLockRoute
+  '/api/summary/mine': typeof ApiSummaryMineRoute
   '/api/summary/monthly': typeof ApiSummaryMonthlyRoute
+  '/api/holidays/': typeof ApiHolidaysIndexRoute
   '/admin/settings': typeof appAuthedAdminSettingsRouteRouteWithChildren
   '/admin/leaves': typeof appAuthedAdminLeavesRoute
   '/admin/requests': typeof appAuthedAdminRequestsRoute
@@ -394,6 +457,7 @@ export interface FileRoutesByFullPath {
   '/attendance/': typeof appAuthedAttendanceIndexRoute
   '/leaves/': typeof appAuthedLeavesIndexRoute
   '/requests/': typeof appAuthedRequestsIndexRoute
+  '/admin/settings/holidays': typeof appAuthedAdminSettingsHolidaysRoute
   '/admin/settings/members': typeof appAuthedAdminSettingsMembersRoute
   '/admin/members/': typeof appAuthedAdminMembersIndexRoute
   '/admin/settings/': typeof appAuthedAdminSettingsIndexRoute
@@ -408,7 +472,9 @@ export interface FileRoutesByTo {
   '/': typeof publicIndexRoute
   '/admin': typeof appAuthedAdminRouteRouteWithChildren
   '/dashboard': typeof appAuthedDashboardRoute
+  '/profile': typeof appAuthedProfileRoute
   '/invite/$token': typeof publicInviteTokenRoute
+  '/api/attendance/audits': typeof ApiAttendanceAuditsRoute
   '/api/attendance/break-end': typeof ApiAttendanceBreakEndRoute
   '/api/attendance/break-start': typeof ApiAttendanceBreakStartRoute
   '/api/attendance/clock-in': typeof ApiAttendanceClockInRoute
@@ -416,6 +482,7 @@ export interface FileRoutesByTo {
   '/api/attendance/detail': typeof ApiAttendanceDetailRoute
   '/api/attendance/edit-entry': typeof ApiAttendanceEditEntryRoute
   '/api/attendance/list': typeof ApiAttendanceListRoute
+  '/api/attendance/reminders': typeof ApiAttendanceRemindersRoute
   '/api/attendance/today': typeof ApiAttendanceTodayRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/correction-requests/approve': typeof ApiCorrectionRequestsApproveRoute
@@ -424,6 +491,8 @@ export interface FileRoutesByTo {
   '/api/correction-requests/list-mine': typeof ApiCorrectionRequestsListMineRoute
   '/api/correction-requests/list-org': typeof ApiCorrectionRequestsListOrgRoute
   '/api/correction-requests/reject': typeof ApiCorrectionRequestsRejectRoute
+  '/api/holidays/create': typeof ApiHolidaysCreateRoute
+  '/api/holidays/delete': typeof ApiHolidaysDeleteRoute
   '/api/leave-requests/approve': typeof ApiLeaveRequestsApproveRoute
   '/api/leave-requests/cancel': typeof ApiLeaveRequestsCancelRoute
   '/api/leave-requests/create': typeof ApiLeaveRequestsCreateRoute
@@ -436,8 +505,11 @@ export interface FileRoutesByTo {
   '/api/organization/members': typeof ApiOrganizationMembersRoute
   '/api/organization/remove-member': typeof ApiOrganizationRemoveMemberRoute
   '/api/organization/update': typeof ApiOrganizationUpdateRoute
+  '/api/summary/csv': typeof ApiSummaryCsvRoute
   '/api/summary/lock': typeof ApiSummaryLockRoute
+  '/api/summary/mine': typeof ApiSummaryMineRoute
   '/api/summary/monthly': typeof ApiSummaryMonthlyRoute
+  '/api/holidays': typeof ApiHolidaysIndexRoute
   '/admin/leaves': typeof appAuthedAdminLeavesRoute
   '/admin/requests': typeof appAuthedAdminRequestsRoute
   '/admin/summary': typeof appAuthedAdminSummaryRoute
@@ -447,6 +519,7 @@ export interface FileRoutesByTo {
   '/attendance': typeof appAuthedAttendanceIndexRoute
   '/leaves': typeof appAuthedLeavesIndexRoute
   '/requests': typeof appAuthedRequestsIndexRoute
+  '/admin/settings/holidays': typeof appAuthedAdminSettingsHolidaysRoute
   '/admin/settings/members': typeof appAuthedAdminSettingsMembersRoute
   '/admin/members': typeof appAuthedAdminMembersIndexRoute
   '/admin/settings': typeof appAuthedAdminSettingsIndexRoute
@@ -463,7 +536,9 @@ export interface FileRoutesById {
   '/(public)/': typeof publicIndexRoute
   '/(app)/_authed/admin': typeof appAuthedAdminRouteRouteWithChildren
   '/(app)/_authed/dashboard': typeof appAuthedDashboardRoute
+  '/(app)/_authed/profile': typeof appAuthedProfileRoute
   '/(public)/invite/$token': typeof publicInviteTokenRoute
+  '/api/attendance/audits': typeof ApiAttendanceAuditsRoute
   '/api/attendance/break-end': typeof ApiAttendanceBreakEndRoute
   '/api/attendance/break-start': typeof ApiAttendanceBreakStartRoute
   '/api/attendance/clock-in': typeof ApiAttendanceClockInRoute
@@ -471,6 +546,7 @@ export interface FileRoutesById {
   '/api/attendance/detail': typeof ApiAttendanceDetailRoute
   '/api/attendance/edit-entry': typeof ApiAttendanceEditEntryRoute
   '/api/attendance/list': typeof ApiAttendanceListRoute
+  '/api/attendance/reminders': typeof ApiAttendanceRemindersRoute
   '/api/attendance/today': typeof ApiAttendanceTodayRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/correction-requests/approve': typeof ApiCorrectionRequestsApproveRoute
@@ -479,6 +555,8 @@ export interface FileRoutesById {
   '/api/correction-requests/list-mine': typeof ApiCorrectionRequestsListMineRoute
   '/api/correction-requests/list-org': typeof ApiCorrectionRequestsListOrgRoute
   '/api/correction-requests/reject': typeof ApiCorrectionRequestsRejectRoute
+  '/api/holidays/create': typeof ApiHolidaysCreateRoute
+  '/api/holidays/delete': typeof ApiHolidaysDeleteRoute
   '/api/leave-requests/approve': typeof ApiLeaveRequestsApproveRoute
   '/api/leave-requests/cancel': typeof ApiLeaveRequestsCancelRoute
   '/api/leave-requests/create': typeof ApiLeaveRequestsCreateRoute
@@ -491,8 +569,11 @@ export interface FileRoutesById {
   '/api/organization/members': typeof ApiOrganizationMembersRoute
   '/api/organization/remove-member': typeof ApiOrganizationRemoveMemberRoute
   '/api/organization/update': typeof ApiOrganizationUpdateRoute
+  '/api/summary/csv': typeof ApiSummaryCsvRoute
   '/api/summary/lock': typeof ApiSummaryLockRoute
+  '/api/summary/mine': typeof ApiSummaryMineRoute
   '/api/summary/monthly': typeof ApiSummaryMonthlyRoute
+  '/api/holidays/': typeof ApiHolidaysIndexRoute
   '/(app)/_authed/admin/settings': typeof appAuthedAdminSettingsRouteRouteWithChildren
   '/(app)/_authed/admin/leaves': typeof appAuthedAdminLeavesRoute
   '/(app)/_authed/admin/requests': typeof appAuthedAdminRequestsRoute
@@ -503,6 +584,7 @@ export interface FileRoutesById {
   '/(app)/_authed/attendance/': typeof appAuthedAttendanceIndexRoute
   '/(app)/_authed/leaves/': typeof appAuthedLeavesIndexRoute
   '/(app)/_authed/requests/': typeof appAuthedRequestsIndexRoute
+  '/(app)/_authed/admin/settings/holidays': typeof appAuthedAdminSettingsHolidaysRoute
   '/(app)/_authed/admin/settings/members': typeof appAuthedAdminSettingsMembersRoute
   '/(app)/_authed/admin/members/': typeof appAuthedAdminMembersIndexRoute
   '/(app)/_authed/admin/settings/': typeof appAuthedAdminSettingsIndexRoute
@@ -519,7 +601,9 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/dashboard'
+    | '/profile'
     | '/invite/$token'
+    | '/api/attendance/audits'
     | '/api/attendance/break-end'
     | '/api/attendance/break-start'
     | '/api/attendance/clock-in'
@@ -527,6 +611,7 @@ export interface FileRouteTypes {
     | '/api/attendance/detail'
     | '/api/attendance/edit-entry'
     | '/api/attendance/list'
+    | '/api/attendance/reminders'
     | '/api/attendance/today'
     | '/api/auth/$'
     | '/api/correction-requests/approve'
@@ -535,6 +620,8 @@ export interface FileRouteTypes {
     | '/api/correction-requests/list-mine'
     | '/api/correction-requests/list-org'
     | '/api/correction-requests/reject'
+    | '/api/holidays/create'
+    | '/api/holidays/delete'
     | '/api/leave-requests/approve'
     | '/api/leave-requests/cancel'
     | '/api/leave-requests/create'
@@ -547,8 +634,11 @@ export interface FileRouteTypes {
     | '/api/organization/members'
     | '/api/organization/remove-member'
     | '/api/organization/update'
+    | '/api/summary/csv'
     | '/api/summary/lock'
+    | '/api/summary/mine'
     | '/api/summary/monthly'
+    | '/api/holidays/'
     | '/admin/settings'
     | '/admin/leaves'
     | '/admin/requests'
@@ -559,6 +649,7 @@ export interface FileRouteTypes {
     | '/attendance/'
     | '/leaves/'
     | '/requests/'
+    | '/admin/settings/holidays'
     | '/admin/settings/members'
     | '/admin/members/'
     | '/admin/settings/'
@@ -573,7 +664,9 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/dashboard'
+    | '/profile'
     | '/invite/$token'
+    | '/api/attendance/audits'
     | '/api/attendance/break-end'
     | '/api/attendance/break-start'
     | '/api/attendance/clock-in'
@@ -581,6 +674,7 @@ export interface FileRouteTypes {
     | '/api/attendance/detail'
     | '/api/attendance/edit-entry'
     | '/api/attendance/list'
+    | '/api/attendance/reminders'
     | '/api/attendance/today'
     | '/api/auth/$'
     | '/api/correction-requests/approve'
@@ -589,6 +683,8 @@ export interface FileRouteTypes {
     | '/api/correction-requests/list-mine'
     | '/api/correction-requests/list-org'
     | '/api/correction-requests/reject'
+    | '/api/holidays/create'
+    | '/api/holidays/delete'
     | '/api/leave-requests/approve'
     | '/api/leave-requests/cancel'
     | '/api/leave-requests/create'
@@ -601,8 +697,11 @@ export interface FileRouteTypes {
     | '/api/organization/members'
     | '/api/organization/remove-member'
     | '/api/organization/update'
+    | '/api/summary/csv'
     | '/api/summary/lock'
+    | '/api/summary/mine'
     | '/api/summary/monthly'
+    | '/api/holidays'
     | '/admin/leaves'
     | '/admin/requests'
     | '/admin/summary'
@@ -612,6 +711,7 @@ export interface FileRouteTypes {
     | '/attendance'
     | '/leaves'
     | '/requests'
+    | '/admin/settings/holidays'
     | '/admin/settings/members'
     | '/admin/members'
     | '/admin/settings'
@@ -627,7 +727,9 @@ export interface FileRouteTypes {
     | '/(public)/'
     | '/(app)/_authed/admin'
     | '/(app)/_authed/dashboard'
+    | '/(app)/_authed/profile'
     | '/(public)/invite/$token'
+    | '/api/attendance/audits'
     | '/api/attendance/break-end'
     | '/api/attendance/break-start'
     | '/api/attendance/clock-in'
@@ -635,6 +737,7 @@ export interface FileRouteTypes {
     | '/api/attendance/detail'
     | '/api/attendance/edit-entry'
     | '/api/attendance/list'
+    | '/api/attendance/reminders'
     | '/api/attendance/today'
     | '/api/auth/$'
     | '/api/correction-requests/approve'
@@ -643,6 +746,8 @@ export interface FileRouteTypes {
     | '/api/correction-requests/list-mine'
     | '/api/correction-requests/list-org'
     | '/api/correction-requests/reject'
+    | '/api/holidays/create'
+    | '/api/holidays/delete'
     | '/api/leave-requests/approve'
     | '/api/leave-requests/cancel'
     | '/api/leave-requests/create'
@@ -655,8 +760,11 @@ export interface FileRouteTypes {
     | '/api/organization/members'
     | '/api/organization/remove-member'
     | '/api/organization/update'
+    | '/api/summary/csv'
     | '/api/summary/lock'
+    | '/api/summary/mine'
     | '/api/summary/monthly'
+    | '/api/holidays/'
     | '/(app)/_authed/admin/settings'
     | '/(app)/_authed/admin/leaves'
     | '/(app)/_authed/admin/requests'
@@ -667,6 +775,7 @@ export interface FileRouteTypes {
     | '/(app)/_authed/attendance/'
     | '/(app)/_authed/leaves/'
     | '/(app)/_authed/requests/'
+    | '/(app)/_authed/admin/settings/holidays'
     | '/(app)/_authed/admin/settings/members'
     | '/(app)/_authed/admin/members/'
     | '/(app)/_authed/admin/settings/'
@@ -682,6 +791,7 @@ export interface RootRouteChildren {
   ApiMeRoute: typeof ApiMeRoute
   publicIndexRoute: typeof publicIndexRoute
   publicInviteTokenRoute: typeof publicInviteTokenRoute
+  ApiAttendanceAuditsRoute: typeof ApiAttendanceAuditsRoute
   ApiAttendanceBreakEndRoute: typeof ApiAttendanceBreakEndRoute
   ApiAttendanceBreakStartRoute: typeof ApiAttendanceBreakStartRoute
   ApiAttendanceClockInRoute: typeof ApiAttendanceClockInRoute
@@ -689,6 +799,7 @@ export interface RootRouteChildren {
   ApiAttendanceDetailRoute: typeof ApiAttendanceDetailRoute
   ApiAttendanceEditEntryRoute: typeof ApiAttendanceEditEntryRoute
   ApiAttendanceListRoute: typeof ApiAttendanceListRoute
+  ApiAttendanceRemindersRoute: typeof ApiAttendanceRemindersRoute
   ApiAttendanceTodayRoute: typeof ApiAttendanceTodayRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiCorrectionRequestsApproveRoute: typeof ApiCorrectionRequestsApproveRoute
@@ -697,6 +808,8 @@ export interface RootRouteChildren {
   ApiCorrectionRequestsListMineRoute: typeof ApiCorrectionRequestsListMineRoute
   ApiCorrectionRequestsListOrgRoute: typeof ApiCorrectionRequestsListOrgRoute
   ApiCorrectionRequestsRejectRoute: typeof ApiCorrectionRequestsRejectRoute
+  ApiHolidaysCreateRoute: typeof ApiHolidaysCreateRoute
+  ApiHolidaysDeleteRoute: typeof ApiHolidaysDeleteRoute
   ApiLeaveRequestsApproveRoute: typeof ApiLeaveRequestsApproveRoute
   ApiLeaveRequestsCancelRoute: typeof ApiLeaveRequestsCancelRoute
   ApiLeaveRequestsCreateRoute: typeof ApiLeaveRequestsCreateRoute
@@ -709,8 +822,11 @@ export interface RootRouteChildren {
   ApiOrganizationMembersRoute: typeof ApiOrganizationMembersRoute
   ApiOrganizationRemoveMemberRoute: typeof ApiOrganizationRemoveMemberRoute
   ApiOrganizationUpdateRoute: typeof ApiOrganizationUpdateRoute
+  ApiSummaryCsvRoute: typeof ApiSummaryCsvRoute
   ApiSummaryLockRoute: typeof ApiSummaryLockRoute
+  ApiSummaryMineRoute: typeof ApiSummaryMineRoute
   ApiSummaryMonthlyRoute: typeof ApiSummaryMonthlyRoute
+  ApiHolidaysIndexRoute: typeof ApiHolidaysIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -757,6 +873,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof appAuthedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/holidays/': {
+      id: '/api/holidays/'
+      path: '/api/holidays'
+      fullPath: '/api/holidays/'
+      preLoaderRoute: typeof ApiHolidaysIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/summary/monthly': {
       id: '/api/summary/monthly'
       path: '/api/summary/monthly'
@@ -764,11 +887,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSummaryMonthlyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/summary/mine': {
+      id: '/api/summary/mine'
+      path: '/api/summary/mine'
+      fullPath: '/api/summary/mine'
+      preLoaderRoute: typeof ApiSummaryMineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/summary/lock': {
       id: '/api/summary/lock'
       path: '/api/summary/lock'
       fullPath: '/api/summary/lock'
       preLoaderRoute: typeof ApiSummaryLockRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/summary/csv': {
+      id: '/api/summary/csv'
+      path: '/api/summary/csv'
+      fullPath: '/api/summary/csv'
+      preLoaderRoute: typeof ApiSummaryCsvRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/organization/update': {
@@ -855,6 +992,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiLeaveRequestsApproveRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/holidays/delete': {
+      id: '/api/holidays/delete'
+      path: '/api/holidays/delete'
+      fullPath: '/api/holidays/delete'
+      preLoaderRoute: typeof ApiHolidaysDeleteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/holidays/create': {
+      id: '/api/holidays/create'
+      path: '/api/holidays/create'
+      fullPath: '/api/holidays/create'
+      preLoaderRoute: typeof ApiHolidaysCreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/correction-requests/reject': {
       id: '/api/correction-requests/reject'
       path: '/api/correction-requests/reject'
@@ -911,6 +1062,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAttendanceTodayRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/attendance/reminders': {
+      id: '/api/attendance/reminders'
+      path: '/api/attendance/reminders'
+      fullPath: '/api/attendance/reminders'
+      preLoaderRoute: typeof ApiAttendanceRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/attendance/list': {
       id: '/api/attendance/list'
       path: '/api/attendance/list'
@@ -960,12 +1118,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAttendanceBreakEndRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/attendance/audits': {
+      id: '/api/attendance/audits'
+      path: '/api/attendance/audits'
+      fullPath: '/api/attendance/audits'
+      preLoaderRoute: typeof ApiAttendanceAuditsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/(public)/invite/$token': {
       id: '/(public)/invite/$token'
       path: '/invite/$token'
       fullPath: '/invite/$token'
       preLoaderRoute: typeof publicInviteTokenRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/(app)/_authed/profile': {
+      id: '/(app)/_authed/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof appAuthedProfileRouteImport
+      parentRoute: typeof appAuthedRouteRoute
     }
     '/(app)/_authed/dashboard': {
       id: '/(app)/_authed/dashboard'
@@ -1072,6 +1244,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof appAuthedAdminSettingsMembersRouteImport
       parentRoute: typeof appAuthedAdminSettingsRouteRoute
     }
+    '/(app)/_authed/admin/settings/holidays': {
+      id: '/(app)/_authed/admin/settings/holidays'
+      path: '/holidays'
+      fullPath: '/admin/settings/holidays'
+      preLoaderRoute: typeof appAuthedAdminSettingsHolidaysRouteImport
+      parentRoute: typeof appAuthedAdminSettingsRouteRoute
+    }
     '/(app)/_authed/admin/members/$userId/': {
       id: '/(app)/_authed/admin/members/$userId/'
       path: '/members/$userId'
@@ -1090,12 +1269,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface appAuthedAdminSettingsRouteRouteChildren {
+  appAuthedAdminSettingsHolidaysRoute: typeof appAuthedAdminSettingsHolidaysRoute
   appAuthedAdminSettingsMembersRoute: typeof appAuthedAdminSettingsMembersRoute
   appAuthedAdminSettingsIndexRoute: typeof appAuthedAdminSettingsIndexRoute
 }
 
 const appAuthedAdminSettingsRouteRouteChildren: appAuthedAdminSettingsRouteRouteChildren =
   {
+    appAuthedAdminSettingsHolidaysRoute: appAuthedAdminSettingsHolidaysRoute,
     appAuthedAdminSettingsMembersRoute: appAuthedAdminSettingsMembersRoute,
     appAuthedAdminSettingsIndexRoute: appAuthedAdminSettingsIndexRoute,
   }
@@ -1132,6 +1313,7 @@ const appAuthedAdminRouteRouteWithChildren =
 interface appAuthedRouteRouteChildren {
   appAuthedAdminRouteRoute: typeof appAuthedAdminRouteRouteWithChildren
   appAuthedDashboardRoute: typeof appAuthedDashboardRoute
+  appAuthedProfileRoute: typeof appAuthedProfileRoute
   appAuthedAttendanceDateRoute: typeof appAuthedAttendanceDateRoute
   appAuthedLeavesNewRoute: typeof appAuthedLeavesNewRoute
   appAuthedRequestsNewRoute: typeof appAuthedRequestsNewRoute
@@ -1143,6 +1325,7 @@ interface appAuthedRouteRouteChildren {
 const appAuthedRouteRouteChildren: appAuthedRouteRouteChildren = {
   appAuthedAdminRouteRoute: appAuthedAdminRouteRouteWithChildren,
   appAuthedDashboardRoute: appAuthedDashboardRoute,
+  appAuthedProfileRoute: appAuthedProfileRoute,
   appAuthedAttendanceDateRoute: appAuthedAttendanceDateRoute,
   appAuthedLeavesNewRoute: appAuthedLeavesNewRoute,
   appAuthedRequestsNewRoute: appAuthedRequestsNewRoute,
@@ -1163,6 +1346,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiMeRoute: ApiMeRoute,
   publicIndexRoute: publicIndexRoute,
   publicInviteTokenRoute: publicInviteTokenRoute,
+  ApiAttendanceAuditsRoute: ApiAttendanceAuditsRoute,
   ApiAttendanceBreakEndRoute: ApiAttendanceBreakEndRoute,
   ApiAttendanceBreakStartRoute: ApiAttendanceBreakStartRoute,
   ApiAttendanceClockInRoute: ApiAttendanceClockInRoute,
@@ -1170,6 +1354,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAttendanceDetailRoute: ApiAttendanceDetailRoute,
   ApiAttendanceEditEntryRoute: ApiAttendanceEditEntryRoute,
   ApiAttendanceListRoute: ApiAttendanceListRoute,
+  ApiAttendanceRemindersRoute: ApiAttendanceRemindersRoute,
   ApiAttendanceTodayRoute: ApiAttendanceTodayRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiCorrectionRequestsApproveRoute: ApiCorrectionRequestsApproveRoute,
@@ -1178,6 +1363,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCorrectionRequestsListMineRoute: ApiCorrectionRequestsListMineRoute,
   ApiCorrectionRequestsListOrgRoute: ApiCorrectionRequestsListOrgRoute,
   ApiCorrectionRequestsRejectRoute: ApiCorrectionRequestsRejectRoute,
+  ApiHolidaysCreateRoute: ApiHolidaysCreateRoute,
+  ApiHolidaysDeleteRoute: ApiHolidaysDeleteRoute,
   ApiLeaveRequestsApproveRoute: ApiLeaveRequestsApproveRoute,
   ApiLeaveRequestsCancelRoute: ApiLeaveRequestsCancelRoute,
   ApiLeaveRequestsCreateRoute: ApiLeaveRequestsCreateRoute,
@@ -1190,8 +1377,11 @@ const rootRouteChildren: RootRouteChildren = {
   ApiOrganizationMembersRoute: ApiOrganizationMembersRoute,
   ApiOrganizationRemoveMemberRoute: ApiOrganizationRemoveMemberRoute,
   ApiOrganizationUpdateRoute: ApiOrganizationUpdateRoute,
+  ApiSummaryCsvRoute: ApiSummaryCsvRoute,
   ApiSummaryLockRoute: ApiSummaryLockRoute,
+  ApiSummaryMineRoute: ApiSummaryMineRoute,
   ApiSummaryMonthlyRoute: ApiSummaryMonthlyRoute,
+  ApiHolidaysIndexRoute: ApiHolidaysIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

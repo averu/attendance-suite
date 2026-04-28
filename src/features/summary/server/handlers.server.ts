@@ -1,14 +1,20 @@
-import { and, between, eq, inArray } from 'drizzle-orm'
+import { and, between, eq, gte, inArray, lte } from 'drizzle-orm'
 import { db } from '@/shared/lib/db.server'
 import {
   breaks,
+  holidays,
+  leaveRequests,
   memberships,
   monthlyLocks,
   timeEntries,
   users,
 } from '@/db/schema'
 import type { ApiCallerContext } from '@/shared/server/apiAuth'
+import type { LeaveType } from '@/features/leave-request'
+import { scheduledWorkingDays } from '@/features/holidays'
 import type { MemberMonthlySummary, OrgMonthlySummary } from '../types'
+import { countLeaveDaysInMonth, type ApprovedLeaveSlice } from '../leaveCount'
+import { dailyOvertimeMinutes } from '../overtime'
 
 function nextMonthFirstDay(yearMonth: string): string {
   const [y, m] = yearMonth.split('-').map(Number)
@@ -35,8 +41,34 @@ export async function getOrgMonthlySummaryHandler(
     .where(eq(memberships.organizationId, ctx.organization.id))
 
   const userIds = memberRows.map((r) => r.u.id)
+  // 当月末日 (date 型は LIKE 不可なので範囲比較で抽出)
+  const monthLastDayStr = `${yearMonth}-${String(
+    new Date(
+      Date.UTC(Number(yearMonth.slice(0, 4)), Number(yearMonth.slice(5, 7)), 0),
+    ).getUTCDate(),
+  ).padStart(2, '0')}`
+
   if (userIds.length === 0) {
-    return { yearMonth, isLocked: false, lockedAt: null, members: [] }
+    const holidayRows = await db
+      .select()
+      .from(holidays)
+      .where(
+        and(
+          eq(holidays.organizationId, ctx.organization.id),
+          gte(holidays.date, monthStart),
+          lte(holidays.date, monthLastDayStr),
+        ),
+      )
+    return {
+      yearMonth,
+      isLocked: false,
+      lockedAt: null,
+      scheduledWorkingDays: scheduledWorkingDays(
+        yearMonth,
+        holidayRows.map((h) => h.date),
+      ),
+      members: [],
+    }
   }
 
   const entryRows = await db
@@ -80,19 +112,55 @@ export async function getOrgMonthlySummaryHandler(
     .limit(1)
   const lock = lockRows[0]
 
+  // 当月にかかる承認済み休暇 (start_date <= 月末 AND end_date >= 月初)
+  const monthLastDay = new Date(
+    Date.UTC(Number(yearMonth.slice(0, 4)), Number(yearMonth.slice(5, 7)), 0),
+  )
+    .toISOString()
+    .slice(0, 10)
+  const leaveRows = await db
+    .select()
+    .from(leaveRequests)
+    .where(
+      and(
+        eq(leaveRequests.organizationId, ctx.organization.id),
+        eq(leaveRequests.status, 'approved'),
+        inArray(leaveRequests.requesterUserId, userIds),
+        lte(leaveRequests.startDate, monthLastDay),
+        gte(leaveRequests.endDate, monthStart),
+      ),
+    )
+  const leavesByUser = new Map<string, ApprovedLeaveSlice[]>()
+  for (const lv of leaveRows) {
+    const arr = leavesByUser.get(lv.requesterUserId) ?? []
+    arr.push({
+      leaveType: lv.leaveType as LeaveType,
+      startDate: lv.startDate,
+      endDate: lv.endDate,
+    })
+    leavesByUser.set(lv.requesterUserId, arr)
+  }
+
   const members: MemberMonthlySummary[] = memberRows.map((r) => {
     const entries = entriesByUser.get(r.u.id) ?? []
     let workingMinutes = 0
     let breakMinutes = 0
     let workingDays = 0
+    let overtimeMinutes = 0
     for (const e of entries) {
       if (!e.clockInAt) continue
       const total = diffMinutes(e.clockInAt, e.clockOutAt)
       const bm = breaksByEntry.get(e.id) ?? 0
-      workingMinutes += Math.max(0, total - bm)
+      const dayWorking = Math.max(0, total - bm)
+      workingMinutes += dayWorking
       breakMinutes += bm
       workingDays += 1
+      overtimeMinutes += dailyOvertimeMinutes(dayWorking)
     }
+    const { paidLeaveDays, otherLeaveDays } = countLeaveDaysInMonth(
+      leavesByUser.get(r.u.id) ?? [],
+      yearMonth,
+    )
     return {
       userId: r.u.id,
       userName: r.u.name,
@@ -100,14 +168,57 @@ export async function getOrgMonthlySummaryHandler(
       workingDays,
       workingMinutes,
       breakMinutes,
+      overtimeMinutes,
+      paidLeaveDays,
+      otherLeaveDays,
     }
   })
+
+  // 当月の公休 → scheduledWorkingDays
+  const holidayRows = await db
+    .select()
+    .from(holidays)
+    .where(
+      and(
+        eq(holidays.organizationId, ctx.organization.id),
+        gte(holidays.date, monthStart),
+        lte(holidays.date, monthLastDayStr),
+      ),
+    )
+  const scheduled = scheduledWorkingDays(
+    yearMonth,
+    holidayRows.map((h) => h.date),
+  )
 
   return {
     yearMonth,
     isLocked: !!lock,
     lockedAt: lock ? lock.lockedAt.toISOString() : null,
+    scheduledWorkingDays: scheduled,
     members,
+  }
+}
+
+/**
+ * 自分の月次サマリ。getOrgMonthlySummaryHandler から自分の行だけ取り出す。
+ * 重い org-wide query を呼んでいるので将来は専用 query に分けて最適化したい。
+ */
+export async function getMyMonthlySummaryHandler(
+  ctx: ApiCallerContext,
+  yearMonth: string,
+): Promise<{
+  yearMonth: string
+  scheduledWorkingDays: number
+  isLocked: boolean
+  member: MemberMonthlySummary | null
+}> {
+  const org = await getOrgMonthlySummaryHandler(ctx, yearMonth)
+  const member = org.members.find((m) => m.userId === ctx.user.id) ?? null
+  return {
+    yearMonth: org.yearMonth,
+    scheduledWorkingDays: org.scheduledWorkingDays,
+    isLocked: org.isLocked,
+    member,
   }
 }
 
