@@ -23,6 +23,12 @@ import { Route as ApiOrganizationMembersRouteImport } from './routes/api/organiz
 import { Route as ApiOrganizationInvitationsRouteImport } from './routes/api/organization/invitations'
 import { Route as ApiOrganizationChangeRoleRouteImport } from './routes/api/organization/change-role'
 import { Route as ApiOrganizationAcceptInvitationRouteImport } from './routes/api/organization/accept-invitation'
+import { Route as ApiLeaveRequestsRejectRouteImport } from './routes/api/leave-requests/reject'
+import { Route as ApiLeaveRequestsListOrgRouteImport } from './routes/api/leave-requests/list-org'
+import { Route as ApiLeaveRequestsListMineRouteImport } from './routes/api/leave-requests/list-mine'
+import { Route as ApiLeaveRequestsCreateRouteImport } from './routes/api/leave-requests/create'
+import { Route as ApiLeaveRequestsCancelRouteImport } from './routes/api/leave-requests/cancel'
+import { Route as ApiLeaveRequestsApproveRouteImport } from './routes/api/leave-requests/approve'
 import { Route as ApiCorrectionRequestsRejectRouteImport } from './routes/api/correction-requests/reject'
 import { Route as ApiCorrectionRequestsListOrgRouteImport } from './routes/api/correction-requests/list-org'
 import { Route as ApiCorrectionRequestsListMineRouteImport } from './routes/api/correction-requests/list-mine'
@@ -39,14 +45,17 @@ import { Route as ApiAttendanceClockInRouteImport } from './routes/api/attendanc
 import { Route as ApiAttendanceBreakStartRouteImport } from './routes/api/attendance/break-start'
 import { Route as ApiAttendanceBreakEndRouteImport } from './routes/api/attendance/break-end'
 import { Route as publicInviteTokenRouteImport } from './routes/(public)/invite.$token'
-import { Route as appAuthedRequestsRouteImport } from './routes/(app)/_authed/requests'
 import { Route as appAuthedDashboardRouteImport } from './routes/(app)/_authed/dashboard'
-import { Route as appAuthedAttendanceRouteImport } from './routes/(app)/_authed/attendance'
 import { Route as appAuthedAdminRouteRouteImport } from './routes/(app)/_authed/admin/route'
-import { Route as appAuthedRequestsNewRouteImport } from './routes/(app)/_authed/requests.new'
-import { Route as appAuthedAttendanceDateRouteImport } from './routes/(app)/_authed/attendance.$date'
+import { Route as appAuthedRequestsIndexRouteImport } from './routes/(app)/_authed/requests/index'
+import { Route as appAuthedLeavesIndexRouteImport } from './routes/(app)/_authed/leaves/index'
+import { Route as appAuthedAttendanceIndexRouteImport } from './routes/(app)/_authed/attendance/index'
+import { Route as appAuthedRequestsNewRouteImport } from './routes/(app)/_authed/requests/new'
+import { Route as appAuthedLeavesNewRouteImport } from './routes/(app)/_authed/leaves/new'
+import { Route as appAuthedAttendanceDateRouteImport } from './routes/(app)/_authed/attendance/$date'
 import { Route as appAuthedAdminSummaryRouteImport } from './routes/(app)/_authed/admin/summary'
 import { Route as appAuthedAdminRequestsRouteImport } from './routes/(app)/_authed/admin/requests'
+import { Route as appAuthedAdminLeavesRouteImport } from './routes/(app)/_authed/admin/leaves'
 import { Route as appAuthedAdminSettingsRouteRouteImport } from './routes/(app)/_authed/admin/settings/route'
 import { Route as appAuthedAdminSettingsIndexRouteImport } from './routes/(app)/_authed/admin/settings/index'
 import { Route as appAuthedAdminMembersIndexRouteImport } from './routes/(app)/_authed/admin/members/index'
@@ -127,6 +136,37 @@ const ApiOrganizationAcceptInvitationRoute =
     path: '/api/organization/accept-invitation',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiLeaveRequestsRejectRoute = ApiLeaveRequestsRejectRouteImport.update({
+  id: '/api/leave-requests/reject',
+  path: '/api/leave-requests/reject',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiLeaveRequestsListOrgRoute = ApiLeaveRequestsListOrgRouteImport.update({
+  id: '/api/leave-requests/list-org',
+  path: '/api/leave-requests/list-org',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiLeaveRequestsListMineRoute =
+  ApiLeaveRequestsListMineRouteImport.update({
+    id: '/api/leave-requests/list-mine',
+    path: '/api/leave-requests/list-mine',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiLeaveRequestsCreateRoute = ApiLeaveRequestsCreateRouteImport.update({
+  id: '/api/leave-requests/create',
+  path: '/api/leave-requests/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiLeaveRequestsCancelRoute = ApiLeaveRequestsCancelRouteImport.update({
+  id: '/api/leave-requests/cancel',
+  path: '/api/leave-requests/cancel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiLeaveRequestsApproveRoute = ApiLeaveRequestsApproveRouteImport.update({
+  id: '/api/leave-requests/approve',
+  path: '/api/leave-requests/approve',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCorrectionRequestsRejectRoute =
   ApiCorrectionRequestsRejectRouteImport.update({
     id: '/api/correction-requests/reject',
@@ -213,19 +253,9 @@ const publicInviteTokenRoute = publicInviteTokenRouteImport.update({
   path: '/invite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
-const appAuthedRequestsRoute = appAuthedRequestsRouteImport.update({
-  id: '/requests',
-  path: '/requests',
-  getParentRoute: () => appAuthedRouteRoute,
-} as any)
 const appAuthedDashboardRoute = appAuthedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
-  getParentRoute: () => appAuthedRouteRoute,
-} as any)
-const appAuthedAttendanceRoute = appAuthedAttendanceRouteImport.update({
-  id: '/attendance',
-  path: '/attendance',
   getParentRoute: () => appAuthedRouteRoute,
 } as any)
 const appAuthedAdminRouteRoute = appAuthedAdminRouteRouteImport.update({
@@ -233,15 +263,36 @@ const appAuthedAdminRouteRoute = appAuthedAdminRouteRouteImport.update({
   path: '/admin',
   getParentRoute: () => appAuthedRouteRoute,
 } as any)
+const appAuthedRequestsIndexRoute = appAuthedRequestsIndexRouteImport.update({
+  id: '/requests/',
+  path: '/requests/',
+  getParentRoute: () => appAuthedRouteRoute,
+} as any)
+const appAuthedLeavesIndexRoute = appAuthedLeavesIndexRouteImport.update({
+  id: '/leaves/',
+  path: '/leaves/',
+  getParentRoute: () => appAuthedRouteRoute,
+} as any)
+const appAuthedAttendanceIndexRoute =
+  appAuthedAttendanceIndexRouteImport.update({
+    id: '/attendance/',
+    path: '/attendance/',
+    getParentRoute: () => appAuthedRouteRoute,
+  } as any)
 const appAuthedRequestsNewRoute = appAuthedRequestsNewRouteImport.update({
-  id: '/new',
-  path: '/new',
-  getParentRoute: () => appAuthedRequestsRoute,
+  id: '/requests/new',
+  path: '/requests/new',
+  getParentRoute: () => appAuthedRouteRoute,
+} as any)
+const appAuthedLeavesNewRoute = appAuthedLeavesNewRouteImport.update({
+  id: '/leaves/new',
+  path: '/leaves/new',
+  getParentRoute: () => appAuthedRouteRoute,
 } as any)
 const appAuthedAttendanceDateRoute = appAuthedAttendanceDateRouteImport.update({
-  id: '/$date',
-  path: '/$date',
-  getParentRoute: () => appAuthedAttendanceRoute,
+  id: '/attendance/$date',
+  path: '/attendance/$date',
+  getParentRoute: () => appAuthedRouteRoute,
 } as any)
 const appAuthedAdminSummaryRoute = appAuthedAdminSummaryRouteImport.update({
   id: '/summary',
@@ -251,6 +302,11 @@ const appAuthedAdminSummaryRoute = appAuthedAdminSummaryRouteImport.update({
 const appAuthedAdminRequestsRoute = appAuthedAdminRequestsRouteImport.update({
   id: '/requests',
   path: '/requests',
+  getParentRoute: () => appAuthedAdminRouteRoute,
+} as any)
+const appAuthedAdminLeavesRoute = appAuthedAdminLeavesRouteImport.update({
+  id: '/leaves',
+  path: '/leaves',
   getParentRoute: () => appAuthedAdminRouteRoute,
 } as any)
 const appAuthedAdminSettingsRouteRoute =
@@ -297,9 +353,7 @@ export interface FileRoutesByFullPath {
   '/api/me': typeof ApiMeRoute
   '/': typeof publicIndexRoute
   '/admin': typeof appAuthedAdminRouteRouteWithChildren
-  '/attendance': typeof appAuthedAttendanceRouteWithChildren
   '/dashboard': typeof appAuthedDashboardRoute
-  '/requests': typeof appAuthedRequestsRouteWithChildren
   '/invite/$token': typeof publicInviteTokenRoute
   '/api/attendance/break-end': typeof ApiAttendanceBreakEndRoute
   '/api/attendance/break-start': typeof ApiAttendanceBreakStartRoute
@@ -316,6 +370,12 @@ export interface FileRoutesByFullPath {
   '/api/correction-requests/list-mine': typeof ApiCorrectionRequestsListMineRoute
   '/api/correction-requests/list-org': typeof ApiCorrectionRequestsListOrgRoute
   '/api/correction-requests/reject': typeof ApiCorrectionRequestsRejectRoute
+  '/api/leave-requests/approve': typeof ApiLeaveRequestsApproveRoute
+  '/api/leave-requests/cancel': typeof ApiLeaveRequestsCancelRoute
+  '/api/leave-requests/create': typeof ApiLeaveRequestsCreateRoute
+  '/api/leave-requests/list-mine': typeof ApiLeaveRequestsListMineRoute
+  '/api/leave-requests/list-org': typeof ApiLeaveRequestsListOrgRoute
+  '/api/leave-requests/reject': typeof ApiLeaveRequestsRejectRoute
   '/api/organization/accept-invitation': typeof ApiOrganizationAcceptInvitationRoute
   '/api/organization/change-role': typeof ApiOrganizationChangeRoleRoute
   '/api/organization/invitations': typeof ApiOrganizationInvitationsRoute
@@ -325,10 +385,15 @@ export interface FileRoutesByFullPath {
   '/api/summary/lock': typeof ApiSummaryLockRoute
   '/api/summary/monthly': typeof ApiSummaryMonthlyRoute
   '/admin/settings': typeof appAuthedAdminSettingsRouteRouteWithChildren
+  '/admin/leaves': typeof appAuthedAdminLeavesRoute
   '/admin/requests': typeof appAuthedAdminRequestsRoute
   '/admin/summary': typeof appAuthedAdminSummaryRoute
   '/attendance/$date': typeof appAuthedAttendanceDateRoute
+  '/leaves/new': typeof appAuthedLeavesNewRoute
   '/requests/new': typeof appAuthedRequestsNewRoute
+  '/attendance/': typeof appAuthedAttendanceIndexRoute
+  '/leaves/': typeof appAuthedLeavesIndexRoute
+  '/requests/': typeof appAuthedRequestsIndexRoute
   '/admin/settings/members': typeof appAuthedAdminSettingsMembersRoute
   '/admin/members/': typeof appAuthedAdminMembersIndexRoute
   '/admin/settings/': typeof appAuthedAdminSettingsIndexRoute
@@ -342,9 +407,7 @@ export interface FileRoutesByTo {
   '/api/me': typeof ApiMeRoute
   '/': typeof publicIndexRoute
   '/admin': typeof appAuthedAdminRouteRouteWithChildren
-  '/attendance': typeof appAuthedAttendanceRouteWithChildren
   '/dashboard': typeof appAuthedDashboardRoute
-  '/requests': typeof appAuthedRequestsRouteWithChildren
   '/invite/$token': typeof publicInviteTokenRoute
   '/api/attendance/break-end': typeof ApiAttendanceBreakEndRoute
   '/api/attendance/break-start': typeof ApiAttendanceBreakStartRoute
@@ -361,6 +424,12 @@ export interface FileRoutesByTo {
   '/api/correction-requests/list-mine': typeof ApiCorrectionRequestsListMineRoute
   '/api/correction-requests/list-org': typeof ApiCorrectionRequestsListOrgRoute
   '/api/correction-requests/reject': typeof ApiCorrectionRequestsRejectRoute
+  '/api/leave-requests/approve': typeof ApiLeaveRequestsApproveRoute
+  '/api/leave-requests/cancel': typeof ApiLeaveRequestsCancelRoute
+  '/api/leave-requests/create': typeof ApiLeaveRequestsCreateRoute
+  '/api/leave-requests/list-mine': typeof ApiLeaveRequestsListMineRoute
+  '/api/leave-requests/list-org': typeof ApiLeaveRequestsListOrgRoute
+  '/api/leave-requests/reject': typeof ApiLeaveRequestsRejectRoute
   '/api/organization/accept-invitation': typeof ApiOrganizationAcceptInvitationRoute
   '/api/organization/change-role': typeof ApiOrganizationChangeRoleRoute
   '/api/organization/invitations': typeof ApiOrganizationInvitationsRoute
@@ -369,10 +438,15 @@ export interface FileRoutesByTo {
   '/api/organization/update': typeof ApiOrganizationUpdateRoute
   '/api/summary/lock': typeof ApiSummaryLockRoute
   '/api/summary/monthly': typeof ApiSummaryMonthlyRoute
+  '/admin/leaves': typeof appAuthedAdminLeavesRoute
   '/admin/requests': typeof appAuthedAdminRequestsRoute
   '/admin/summary': typeof appAuthedAdminSummaryRoute
   '/attendance/$date': typeof appAuthedAttendanceDateRoute
+  '/leaves/new': typeof appAuthedLeavesNewRoute
   '/requests/new': typeof appAuthedRequestsNewRoute
+  '/attendance': typeof appAuthedAttendanceIndexRoute
+  '/leaves': typeof appAuthedLeavesIndexRoute
+  '/requests': typeof appAuthedRequestsIndexRoute
   '/admin/settings/members': typeof appAuthedAdminSettingsMembersRoute
   '/admin/members': typeof appAuthedAdminMembersIndexRoute
   '/admin/settings': typeof appAuthedAdminSettingsIndexRoute
@@ -388,9 +462,7 @@ export interface FileRoutesById {
   '/api/me': typeof ApiMeRoute
   '/(public)/': typeof publicIndexRoute
   '/(app)/_authed/admin': typeof appAuthedAdminRouteRouteWithChildren
-  '/(app)/_authed/attendance': typeof appAuthedAttendanceRouteWithChildren
   '/(app)/_authed/dashboard': typeof appAuthedDashboardRoute
-  '/(app)/_authed/requests': typeof appAuthedRequestsRouteWithChildren
   '/(public)/invite/$token': typeof publicInviteTokenRoute
   '/api/attendance/break-end': typeof ApiAttendanceBreakEndRoute
   '/api/attendance/break-start': typeof ApiAttendanceBreakStartRoute
@@ -407,6 +479,12 @@ export interface FileRoutesById {
   '/api/correction-requests/list-mine': typeof ApiCorrectionRequestsListMineRoute
   '/api/correction-requests/list-org': typeof ApiCorrectionRequestsListOrgRoute
   '/api/correction-requests/reject': typeof ApiCorrectionRequestsRejectRoute
+  '/api/leave-requests/approve': typeof ApiLeaveRequestsApproveRoute
+  '/api/leave-requests/cancel': typeof ApiLeaveRequestsCancelRoute
+  '/api/leave-requests/create': typeof ApiLeaveRequestsCreateRoute
+  '/api/leave-requests/list-mine': typeof ApiLeaveRequestsListMineRoute
+  '/api/leave-requests/list-org': typeof ApiLeaveRequestsListOrgRoute
+  '/api/leave-requests/reject': typeof ApiLeaveRequestsRejectRoute
   '/api/organization/accept-invitation': typeof ApiOrganizationAcceptInvitationRoute
   '/api/organization/change-role': typeof ApiOrganizationChangeRoleRoute
   '/api/organization/invitations': typeof ApiOrganizationInvitationsRoute
@@ -416,10 +494,15 @@ export interface FileRoutesById {
   '/api/summary/lock': typeof ApiSummaryLockRoute
   '/api/summary/monthly': typeof ApiSummaryMonthlyRoute
   '/(app)/_authed/admin/settings': typeof appAuthedAdminSettingsRouteRouteWithChildren
+  '/(app)/_authed/admin/leaves': typeof appAuthedAdminLeavesRoute
   '/(app)/_authed/admin/requests': typeof appAuthedAdminRequestsRoute
   '/(app)/_authed/admin/summary': typeof appAuthedAdminSummaryRoute
   '/(app)/_authed/attendance/$date': typeof appAuthedAttendanceDateRoute
+  '/(app)/_authed/leaves/new': typeof appAuthedLeavesNewRoute
   '/(app)/_authed/requests/new': typeof appAuthedRequestsNewRoute
+  '/(app)/_authed/attendance/': typeof appAuthedAttendanceIndexRoute
+  '/(app)/_authed/leaves/': typeof appAuthedLeavesIndexRoute
+  '/(app)/_authed/requests/': typeof appAuthedRequestsIndexRoute
   '/(app)/_authed/admin/settings/members': typeof appAuthedAdminSettingsMembersRoute
   '/(app)/_authed/admin/members/': typeof appAuthedAdminMembersIndexRoute
   '/(app)/_authed/admin/settings/': typeof appAuthedAdminSettingsIndexRoute
@@ -435,9 +518,7 @@ export interface FileRouteTypes {
     | '/api/me'
     | '/'
     | '/admin'
-    | '/attendance'
     | '/dashboard'
-    | '/requests'
     | '/invite/$token'
     | '/api/attendance/break-end'
     | '/api/attendance/break-start'
@@ -454,6 +535,12 @@ export interface FileRouteTypes {
     | '/api/correction-requests/list-mine'
     | '/api/correction-requests/list-org'
     | '/api/correction-requests/reject'
+    | '/api/leave-requests/approve'
+    | '/api/leave-requests/cancel'
+    | '/api/leave-requests/create'
+    | '/api/leave-requests/list-mine'
+    | '/api/leave-requests/list-org'
+    | '/api/leave-requests/reject'
     | '/api/organization/accept-invitation'
     | '/api/organization/change-role'
     | '/api/organization/invitations'
@@ -463,10 +550,15 @@ export interface FileRouteTypes {
     | '/api/summary/lock'
     | '/api/summary/monthly'
     | '/admin/settings'
+    | '/admin/leaves'
     | '/admin/requests'
     | '/admin/summary'
     | '/attendance/$date'
+    | '/leaves/new'
     | '/requests/new'
+    | '/attendance/'
+    | '/leaves/'
+    | '/requests/'
     | '/admin/settings/members'
     | '/admin/members/'
     | '/admin/settings/'
@@ -480,9 +572,7 @@ export interface FileRouteTypes {
     | '/api/me'
     | '/'
     | '/admin'
-    | '/attendance'
     | '/dashboard'
-    | '/requests'
     | '/invite/$token'
     | '/api/attendance/break-end'
     | '/api/attendance/break-start'
@@ -499,6 +589,12 @@ export interface FileRouteTypes {
     | '/api/correction-requests/list-mine'
     | '/api/correction-requests/list-org'
     | '/api/correction-requests/reject'
+    | '/api/leave-requests/approve'
+    | '/api/leave-requests/cancel'
+    | '/api/leave-requests/create'
+    | '/api/leave-requests/list-mine'
+    | '/api/leave-requests/list-org'
+    | '/api/leave-requests/reject'
     | '/api/organization/accept-invitation'
     | '/api/organization/change-role'
     | '/api/organization/invitations'
@@ -507,10 +603,15 @@ export interface FileRouteTypes {
     | '/api/organization/update'
     | '/api/summary/lock'
     | '/api/summary/monthly'
+    | '/admin/leaves'
     | '/admin/requests'
     | '/admin/summary'
     | '/attendance/$date'
+    | '/leaves/new'
     | '/requests/new'
+    | '/attendance'
+    | '/leaves'
+    | '/requests'
     | '/admin/settings/members'
     | '/admin/members'
     | '/admin/settings'
@@ -525,9 +626,7 @@ export interface FileRouteTypes {
     | '/api/me'
     | '/(public)/'
     | '/(app)/_authed/admin'
-    | '/(app)/_authed/attendance'
     | '/(app)/_authed/dashboard'
-    | '/(app)/_authed/requests'
     | '/(public)/invite/$token'
     | '/api/attendance/break-end'
     | '/api/attendance/break-start'
@@ -544,6 +643,12 @@ export interface FileRouteTypes {
     | '/api/correction-requests/list-mine'
     | '/api/correction-requests/list-org'
     | '/api/correction-requests/reject'
+    | '/api/leave-requests/approve'
+    | '/api/leave-requests/cancel'
+    | '/api/leave-requests/create'
+    | '/api/leave-requests/list-mine'
+    | '/api/leave-requests/list-org'
+    | '/api/leave-requests/reject'
     | '/api/organization/accept-invitation'
     | '/api/organization/change-role'
     | '/api/organization/invitations'
@@ -553,10 +658,15 @@ export interface FileRouteTypes {
     | '/api/summary/lock'
     | '/api/summary/monthly'
     | '/(app)/_authed/admin/settings'
+    | '/(app)/_authed/admin/leaves'
     | '/(app)/_authed/admin/requests'
     | '/(app)/_authed/admin/summary'
     | '/(app)/_authed/attendance/$date'
+    | '/(app)/_authed/leaves/new'
     | '/(app)/_authed/requests/new'
+    | '/(app)/_authed/attendance/'
+    | '/(app)/_authed/leaves/'
+    | '/(app)/_authed/requests/'
     | '/(app)/_authed/admin/settings/members'
     | '/(app)/_authed/admin/members/'
     | '/(app)/_authed/admin/settings/'
@@ -587,6 +697,12 @@ export interface RootRouteChildren {
   ApiCorrectionRequestsListMineRoute: typeof ApiCorrectionRequestsListMineRoute
   ApiCorrectionRequestsListOrgRoute: typeof ApiCorrectionRequestsListOrgRoute
   ApiCorrectionRequestsRejectRoute: typeof ApiCorrectionRequestsRejectRoute
+  ApiLeaveRequestsApproveRoute: typeof ApiLeaveRequestsApproveRoute
+  ApiLeaveRequestsCancelRoute: typeof ApiLeaveRequestsCancelRoute
+  ApiLeaveRequestsCreateRoute: typeof ApiLeaveRequestsCreateRoute
+  ApiLeaveRequestsListMineRoute: typeof ApiLeaveRequestsListMineRoute
+  ApiLeaveRequestsListOrgRoute: typeof ApiLeaveRequestsListOrgRoute
+  ApiLeaveRequestsRejectRoute: typeof ApiLeaveRequestsRejectRoute
   ApiOrganizationAcceptInvitationRoute: typeof ApiOrganizationAcceptInvitationRoute
   ApiOrganizationChangeRoleRoute: typeof ApiOrganizationChangeRoleRoute
   ApiOrganizationInvitationsRoute: typeof ApiOrganizationInvitationsRoute
@@ -695,6 +811,48 @@ declare module '@tanstack/react-router' {
       path: '/api/organization/accept-invitation'
       fullPath: '/api/organization/accept-invitation'
       preLoaderRoute: typeof ApiOrganizationAcceptInvitationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/leave-requests/reject': {
+      id: '/api/leave-requests/reject'
+      path: '/api/leave-requests/reject'
+      fullPath: '/api/leave-requests/reject'
+      preLoaderRoute: typeof ApiLeaveRequestsRejectRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/leave-requests/list-org': {
+      id: '/api/leave-requests/list-org'
+      path: '/api/leave-requests/list-org'
+      fullPath: '/api/leave-requests/list-org'
+      preLoaderRoute: typeof ApiLeaveRequestsListOrgRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/leave-requests/list-mine': {
+      id: '/api/leave-requests/list-mine'
+      path: '/api/leave-requests/list-mine'
+      fullPath: '/api/leave-requests/list-mine'
+      preLoaderRoute: typeof ApiLeaveRequestsListMineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/leave-requests/create': {
+      id: '/api/leave-requests/create'
+      path: '/api/leave-requests/create'
+      fullPath: '/api/leave-requests/create'
+      preLoaderRoute: typeof ApiLeaveRequestsCreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/leave-requests/cancel': {
+      id: '/api/leave-requests/cancel'
+      path: '/api/leave-requests/cancel'
+      fullPath: '/api/leave-requests/cancel'
+      preLoaderRoute: typeof ApiLeaveRequestsCancelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/leave-requests/approve': {
+      id: '/api/leave-requests/approve'
+      path: '/api/leave-requests/approve'
+      fullPath: '/api/leave-requests/approve'
+      preLoaderRoute: typeof ApiLeaveRequestsApproveRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/correction-requests/reject': {
@@ -809,25 +967,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof publicInviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(app)/_authed/requests': {
-      id: '/(app)/_authed/requests'
-      path: '/requests'
-      fullPath: '/requests'
-      preLoaderRoute: typeof appAuthedRequestsRouteImport
-      parentRoute: typeof appAuthedRouteRoute
-    }
     '/(app)/_authed/dashboard': {
       id: '/(app)/_authed/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof appAuthedDashboardRouteImport
-      parentRoute: typeof appAuthedRouteRoute
-    }
-    '/(app)/_authed/attendance': {
-      id: '/(app)/_authed/attendance'
-      path: '/attendance'
-      fullPath: '/attendance'
-      preLoaderRoute: typeof appAuthedAttendanceRouteImport
       parentRoute: typeof appAuthedRouteRoute
     }
     '/(app)/_authed/admin': {
@@ -837,19 +981,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof appAuthedAdminRouteRouteImport
       parentRoute: typeof appAuthedRouteRoute
     }
+    '/(app)/_authed/requests/': {
+      id: '/(app)/_authed/requests/'
+      path: '/requests'
+      fullPath: '/requests/'
+      preLoaderRoute: typeof appAuthedRequestsIndexRouteImport
+      parentRoute: typeof appAuthedRouteRoute
+    }
+    '/(app)/_authed/leaves/': {
+      id: '/(app)/_authed/leaves/'
+      path: '/leaves'
+      fullPath: '/leaves/'
+      preLoaderRoute: typeof appAuthedLeavesIndexRouteImport
+      parentRoute: typeof appAuthedRouteRoute
+    }
+    '/(app)/_authed/attendance/': {
+      id: '/(app)/_authed/attendance/'
+      path: '/attendance'
+      fullPath: '/attendance/'
+      preLoaderRoute: typeof appAuthedAttendanceIndexRouteImport
+      parentRoute: typeof appAuthedRouteRoute
+    }
     '/(app)/_authed/requests/new': {
       id: '/(app)/_authed/requests/new'
-      path: '/new'
+      path: '/requests/new'
       fullPath: '/requests/new'
       preLoaderRoute: typeof appAuthedRequestsNewRouteImport
-      parentRoute: typeof appAuthedRequestsRoute
+      parentRoute: typeof appAuthedRouteRoute
+    }
+    '/(app)/_authed/leaves/new': {
+      id: '/(app)/_authed/leaves/new'
+      path: '/leaves/new'
+      fullPath: '/leaves/new'
+      preLoaderRoute: typeof appAuthedLeavesNewRouteImport
+      parentRoute: typeof appAuthedRouteRoute
     }
     '/(app)/_authed/attendance/$date': {
       id: '/(app)/_authed/attendance/$date'
-      path: '/$date'
+      path: '/attendance/$date'
       fullPath: '/attendance/$date'
       preLoaderRoute: typeof appAuthedAttendanceDateRouteImport
-      parentRoute: typeof appAuthedAttendanceRoute
+      parentRoute: typeof appAuthedRouteRoute
     }
     '/(app)/_authed/admin/summary': {
       id: '/(app)/_authed/admin/summary'
@@ -863,6 +1035,13 @@ declare module '@tanstack/react-router' {
       path: '/requests'
       fullPath: '/admin/requests'
       preLoaderRoute: typeof appAuthedAdminRequestsRouteImport
+      parentRoute: typeof appAuthedAdminRouteRoute
+    }
+    '/(app)/_authed/admin/leaves': {
+      id: '/(app)/_authed/admin/leaves'
+      path: '/leaves'
+      fullPath: '/admin/leaves'
+      preLoaderRoute: typeof appAuthedAdminLeavesRouteImport
       parentRoute: typeof appAuthedAdminRouteRoute
     }
     '/(app)/_authed/admin/settings': {
@@ -928,6 +1107,7 @@ const appAuthedAdminSettingsRouteRouteWithChildren =
 
 interface appAuthedAdminRouteRouteChildren {
   appAuthedAdminSettingsRouteRoute: typeof appAuthedAdminSettingsRouteRouteWithChildren
+  appAuthedAdminLeavesRoute: typeof appAuthedAdminLeavesRoute
   appAuthedAdminRequestsRoute: typeof appAuthedAdminRequestsRoute
   appAuthedAdminSummaryRoute: typeof appAuthedAdminSummaryRoute
   appAuthedAdminMembersIndexRoute: typeof appAuthedAdminMembersIndexRoute
@@ -938,6 +1118,7 @@ interface appAuthedAdminRouteRouteChildren {
 const appAuthedAdminRouteRouteChildren: appAuthedAdminRouteRouteChildren = {
   appAuthedAdminSettingsRouteRoute:
     appAuthedAdminSettingsRouteRouteWithChildren,
+  appAuthedAdminLeavesRoute: appAuthedAdminLeavesRoute,
   appAuthedAdminRequestsRoute: appAuthedAdminRequestsRoute,
   appAuthedAdminSummaryRoute: appAuthedAdminSummaryRoute,
   appAuthedAdminMembersIndexRoute: appAuthedAdminMembersIndexRoute,
@@ -948,40 +1129,26 @@ const appAuthedAdminRouteRouteChildren: appAuthedAdminRouteRouteChildren = {
 const appAuthedAdminRouteRouteWithChildren =
   appAuthedAdminRouteRoute._addFileChildren(appAuthedAdminRouteRouteChildren)
 
-interface appAuthedAttendanceRouteChildren {
-  appAuthedAttendanceDateRoute: typeof appAuthedAttendanceDateRoute
-}
-
-const appAuthedAttendanceRouteChildren: appAuthedAttendanceRouteChildren = {
-  appAuthedAttendanceDateRoute: appAuthedAttendanceDateRoute,
-}
-
-const appAuthedAttendanceRouteWithChildren =
-  appAuthedAttendanceRoute._addFileChildren(appAuthedAttendanceRouteChildren)
-
-interface appAuthedRequestsRouteChildren {
-  appAuthedRequestsNewRoute: typeof appAuthedRequestsNewRoute
-}
-
-const appAuthedRequestsRouteChildren: appAuthedRequestsRouteChildren = {
-  appAuthedRequestsNewRoute: appAuthedRequestsNewRoute,
-}
-
-const appAuthedRequestsRouteWithChildren =
-  appAuthedRequestsRoute._addFileChildren(appAuthedRequestsRouteChildren)
-
 interface appAuthedRouteRouteChildren {
   appAuthedAdminRouteRoute: typeof appAuthedAdminRouteRouteWithChildren
-  appAuthedAttendanceRoute: typeof appAuthedAttendanceRouteWithChildren
   appAuthedDashboardRoute: typeof appAuthedDashboardRoute
-  appAuthedRequestsRoute: typeof appAuthedRequestsRouteWithChildren
+  appAuthedAttendanceDateRoute: typeof appAuthedAttendanceDateRoute
+  appAuthedLeavesNewRoute: typeof appAuthedLeavesNewRoute
+  appAuthedRequestsNewRoute: typeof appAuthedRequestsNewRoute
+  appAuthedAttendanceIndexRoute: typeof appAuthedAttendanceIndexRoute
+  appAuthedLeavesIndexRoute: typeof appAuthedLeavesIndexRoute
+  appAuthedRequestsIndexRoute: typeof appAuthedRequestsIndexRoute
 }
 
 const appAuthedRouteRouteChildren: appAuthedRouteRouteChildren = {
   appAuthedAdminRouteRoute: appAuthedAdminRouteRouteWithChildren,
-  appAuthedAttendanceRoute: appAuthedAttendanceRouteWithChildren,
   appAuthedDashboardRoute: appAuthedDashboardRoute,
-  appAuthedRequestsRoute: appAuthedRequestsRouteWithChildren,
+  appAuthedAttendanceDateRoute: appAuthedAttendanceDateRoute,
+  appAuthedLeavesNewRoute: appAuthedLeavesNewRoute,
+  appAuthedRequestsNewRoute: appAuthedRequestsNewRoute,
+  appAuthedAttendanceIndexRoute: appAuthedAttendanceIndexRoute,
+  appAuthedLeavesIndexRoute: appAuthedLeavesIndexRoute,
+  appAuthedRequestsIndexRoute: appAuthedRequestsIndexRoute,
 }
 
 const appAuthedRouteRouteWithChildren = appAuthedRouteRoute._addFileChildren(
@@ -1011,6 +1178,12 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCorrectionRequestsListMineRoute: ApiCorrectionRequestsListMineRoute,
   ApiCorrectionRequestsListOrgRoute: ApiCorrectionRequestsListOrgRoute,
   ApiCorrectionRequestsRejectRoute: ApiCorrectionRequestsRejectRoute,
+  ApiLeaveRequestsApproveRoute: ApiLeaveRequestsApproveRoute,
+  ApiLeaveRequestsCancelRoute: ApiLeaveRequestsCancelRoute,
+  ApiLeaveRequestsCreateRoute: ApiLeaveRequestsCreateRoute,
+  ApiLeaveRequestsListMineRoute: ApiLeaveRequestsListMineRoute,
+  ApiLeaveRequestsListOrgRoute: ApiLeaveRequestsListOrgRoute,
+  ApiLeaveRequestsRejectRoute: ApiLeaveRequestsRejectRoute,
   ApiOrganizationAcceptInvitationRoute: ApiOrganizationAcceptInvitationRoute,
   ApiOrganizationChangeRoleRoute: ApiOrganizationChangeRoleRoute,
   ApiOrganizationInvitationsRoute: ApiOrganizationInvitationsRoute,

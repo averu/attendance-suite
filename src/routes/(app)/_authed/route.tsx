@@ -10,8 +10,10 @@ import {
   Clock,
   CalendarDays,
   FileEdit,
+  Plane,
   Users,
   Inbox,
+  PlaneTakeoff,
   BarChart3,
   Settings,
   LogOut,
@@ -76,6 +78,9 @@ function AuthedLayout() {
           <NavLink to="/requests" icon={<FileEdit className="size-4" />}>
             修正申請
           </NavLink>
+          <NavLink to="/leaves" icon={<Plane className="size-4" />}>
+            休暇申請
+          </NavLink>
         </nav>
 
         {isAdmin && (
@@ -87,7 +92,10 @@ function AuthedLayout() {
                 メンバー
               </NavLink>
               <NavLink to="/admin/requests" icon={<Inbox className="size-4" />}>
-                申請の承認
+                修正申請の承認
+              </NavLink>
+              <NavLink to="/admin/leaves" icon={<PlaneTakeoff className="size-4" />}>
+                休暇の承認
               </NavLink>
               <NavLink to="/admin/summary" icon={<BarChart3 className="size-4" />}>
                 月次集計

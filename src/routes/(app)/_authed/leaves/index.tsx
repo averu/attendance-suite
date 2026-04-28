@@ -1,23 +1,23 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { Suspense } from 'react'
 import { Loader2, Plus } from 'lucide-react'
-import { MyRequestList } from '@/features/correction-request'
+import { MyLeaveList } from '@/features/leave-request'
 import { Button } from '@/shared/ui/button'
 
-export const Route = createFileRoute('/(app)/_authed/requests')({
-  component: MyRequestsScreen,
+export const Route = createFileRoute('/(app)/_authed/leaves/')({
+  component: LeavesScreen,
 })
 
-function MyRequestsScreen() {
+function LeavesScreen() {
   return (
     <section className="grid gap-6">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">修正申請</h1>
-          <p className="text-muted-foreground">自分の修正申請の一覧</p>
+          <h1 className="text-2xl font-bold tracking-tight">休暇申請</h1>
+          <p className="text-muted-foreground">自分の休暇申請の一覧</p>
         </div>
         <Button asChild>
-          <Link to="/requests/new">
+          <Link to="/leaves/new">
             <Plus />
             新規申請
           </Link>
@@ -31,7 +31,7 @@ function MyRequestsScreen() {
           </div>
         }
       >
-        <MyRequestList />
+        <MyLeaveList />
       </Suspense>
     </section>
   )

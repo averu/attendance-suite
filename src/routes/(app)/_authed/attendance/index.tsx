@@ -12,7 +12,7 @@ const SearchSchema = z.object({
     .optional(),
 })
 
-export const Route = createFileRoute('/(app)/_authed/attendance')({
+export const Route = createFileRoute('/(app)/_authed/attendance/')({
   validateSearch: (s) => SearchSchema.parse(s),
   component: AttendanceScreen,
 })
