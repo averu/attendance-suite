@@ -3,7 +3,7 @@ import { Suspense } from 'react'
 import { Loader2 } from 'lucide-react'
 import { MemberTable } from '@/features/organization'
 
-export const Route = createFileRoute('/(app)/_authed/admin/members')({
+export const Route = createFileRoute('/(app)/_authed/admin/members/')({
   component: MembersScreen,
 })
 

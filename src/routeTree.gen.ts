@@ -32,6 +32,7 @@ import { Route as ApiCorrectionRequestsApproveRouteImport } from './routes/api/c
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiAttendanceTodayRouteImport } from './routes/api/attendance/today'
 import { Route as ApiAttendanceListRouteImport } from './routes/api/attendance/list'
+import { Route as ApiAttendanceEditEntryRouteImport } from './routes/api/attendance/edit-entry'
 import { Route as ApiAttendanceDetailRouteImport } from './routes/api/attendance/detail'
 import { Route as ApiAttendanceClockOutRouteImport } from './routes/api/attendance/clock-out'
 import { Route as ApiAttendanceClockInRouteImport } from './routes/api/attendance/clock-in'
@@ -46,10 +47,12 @@ import { Route as appAuthedRequestsNewRouteImport } from './routes/(app)/_authed
 import { Route as appAuthedAttendanceDateRouteImport } from './routes/(app)/_authed/attendance.$date'
 import { Route as appAuthedAdminSummaryRouteImport } from './routes/(app)/_authed/admin/summary'
 import { Route as appAuthedAdminRequestsRouteImport } from './routes/(app)/_authed/admin/requests'
-import { Route as appAuthedAdminMembersRouteImport } from './routes/(app)/_authed/admin/members'
 import { Route as appAuthedAdminSettingsRouteRouteImport } from './routes/(app)/_authed/admin/settings/route'
 import { Route as appAuthedAdminSettingsIndexRouteImport } from './routes/(app)/_authed/admin/settings/index'
+import { Route as appAuthedAdminMembersIndexRouteImport } from './routes/(app)/_authed/admin/members/index'
 import { Route as appAuthedAdminSettingsMembersRouteImport } from './routes/(app)/_authed/admin/settings/members'
+import { Route as appAuthedAdminMembersUserIdIndexRouteImport } from './routes/(app)/_authed/admin/members/$userId/index'
+import { Route as appAuthedAdminMembersUserIdDateRouteImport } from './routes/(app)/_authed/admin/members/$userId/$date'
 
 const publicIndexRoute = publicIndexRouteImport.update({
   id: '/(public)/',
@@ -175,6 +178,11 @@ const ApiAttendanceListRoute = ApiAttendanceListRouteImport.update({
   path: '/api/attendance/list',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAttendanceEditEntryRoute = ApiAttendanceEditEntryRouteImport.update({
+  id: '/api/attendance/edit-entry',
+  path: '/api/attendance/edit-entry',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAttendanceDetailRoute = ApiAttendanceDetailRouteImport.update({
   id: '/api/attendance/detail',
   path: '/api/attendance/detail',
@@ -245,11 +253,6 @@ const appAuthedAdminRequestsRoute = appAuthedAdminRequestsRouteImport.update({
   path: '/requests',
   getParentRoute: () => appAuthedAdminRouteRoute,
 } as any)
-const appAuthedAdminMembersRoute = appAuthedAdminMembersRouteImport.update({
-  id: '/members',
-  path: '/members',
-  getParentRoute: () => appAuthedAdminRouteRoute,
-} as any)
 const appAuthedAdminSettingsRouteRoute =
   appAuthedAdminSettingsRouteRouteImport.update({
     id: '/settings',
@@ -262,11 +265,29 @@ const appAuthedAdminSettingsIndexRoute =
     path: '/',
     getParentRoute: () => appAuthedAdminSettingsRouteRoute,
   } as any)
+const appAuthedAdminMembersIndexRoute =
+  appAuthedAdminMembersIndexRouteImport.update({
+    id: '/members/',
+    path: '/members/',
+    getParentRoute: () => appAuthedAdminRouteRoute,
+  } as any)
 const appAuthedAdminSettingsMembersRoute =
   appAuthedAdminSettingsMembersRouteImport.update({
     id: '/members',
     path: '/members',
     getParentRoute: () => appAuthedAdminSettingsRouteRoute,
+  } as any)
+const appAuthedAdminMembersUserIdIndexRoute =
+  appAuthedAdminMembersUserIdIndexRouteImport.update({
+    id: '/members/$userId/',
+    path: '/members/$userId/',
+    getParentRoute: () => appAuthedAdminRouteRoute,
+  } as any)
+const appAuthedAdminMembersUserIdDateRoute =
+  appAuthedAdminMembersUserIdDateRouteImport.update({
+    id: '/members/$userId/$date',
+    path: '/members/$userId/$date',
+    getParentRoute: () => appAuthedAdminRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -285,6 +306,7 @@ export interface FileRoutesByFullPath {
   '/api/attendance/clock-in': typeof ApiAttendanceClockInRoute
   '/api/attendance/clock-out': typeof ApiAttendanceClockOutRoute
   '/api/attendance/detail': typeof ApiAttendanceDetailRoute
+  '/api/attendance/edit-entry': typeof ApiAttendanceEditEntryRoute
   '/api/attendance/list': typeof ApiAttendanceListRoute
   '/api/attendance/today': typeof ApiAttendanceTodayRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -303,13 +325,15 @@ export interface FileRoutesByFullPath {
   '/api/summary/lock': typeof ApiSummaryLockRoute
   '/api/summary/monthly': typeof ApiSummaryMonthlyRoute
   '/admin/settings': typeof appAuthedAdminSettingsRouteRouteWithChildren
-  '/admin/members': typeof appAuthedAdminMembersRoute
   '/admin/requests': typeof appAuthedAdminRequestsRoute
   '/admin/summary': typeof appAuthedAdminSummaryRoute
   '/attendance/$date': typeof appAuthedAttendanceDateRoute
   '/requests/new': typeof appAuthedRequestsNewRoute
   '/admin/settings/members': typeof appAuthedAdminSettingsMembersRoute
+  '/admin/members/': typeof appAuthedAdminMembersIndexRoute
   '/admin/settings/': typeof appAuthedAdminSettingsIndexRoute
+  '/admin/members/$userId/$date': typeof appAuthedAdminMembersUserIdDateRoute
+  '/admin/members/$userId/': typeof appAuthedAdminMembersUserIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof publicLoginRoute
@@ -327,6 +351,7 @@ export interface FileRoutesByTo {
   '/api/attendance/clock-in': typeof ApiAttendanceClockInRoute
   '/api/attendance/clock-out': typeof ApiAttendanceClockOutRoute
   '/api/attendance/detail': typeof ApiAttendanceDetailRoute
+  '/api/attendance/edit-entry': typeof ApiAttendanceEditEntryRoute
   '/api/attendance/list': typeof ApiAttendanceListRoute
   '/api/attendance/today': typeof ApiAttendanceTodayRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -344,13 +369,15 @@ export interface FileRoutesByTo {
   '/api/organization/update': typeof ApiOrganizationUpdateRoute
   '/api/summary/lock': typeof ApiSummaryLockRoute
   '/api/summary/monthly': typeof ApiSummaryMonthlyRoute
-  '/admin/members': typeof appAuthedAdminMembersRoute
   '/admin/requests': typeof appAuthedAdminRequestsRoute
   '/admin/summary': typeof appAuthedAdminSummaryRoute
   '/attendance/$date': typeof appAuthedAttendanceDateRoute
   '/requests/new': typeof appAuthedRequestsNewRoute
   '/admin/settings/members': typeof appAuthedAdminSettingsMembersRoute
+  '/admin/members': typeof appAuthedAdminMembersIndexRoute
   '/admin/settings': typeof appAuthedAdminSettingsIndexRoute
+  '/admin/members/$userId/$date': typeof appAuthedAdminMembersUserIdDateRoute
+  '/admin/members/$userId': typeof appAuthedAdminMembersUserIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -370,6 +397,7 @@ export interface FileRoutesById {
   '/api/attendance/clock-in': typeof ApiAttendanceClockInRoute
   '/api/attendance/clock-out': typeof ApiAttendanceClockOutRoute
   '/api/attendance/detail': typeof ApiAttendanceDetailRoute
+  '/api/attendance/edit-entry': typeof ApiAttendanceEditEntryRoute
   '/api/attendance/list': typeof ApiAttendanceListRoute
   '/api/attendance/today': typeof ApiAttendanceTodayRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -388,13 +416,15 @@ export interface FileRoutesById {
   '/api/summary/lock': typeof ApiSummaryLockRoute
   '/api/summary/monthly': typeof ApiSummaryMonthlyRoute
   '/(app)/_authed/admin/settings': typeof appAuthedAdminSettingsRouteRouteWithChildren
-  '/(app)/_authed/admin/members': typeof appAuthedAdminMembersRoute
   '/(app)/_authed/admin/requests': typeof appAuthedAdminRequestsRoute
   '/(app)/_authed/admin/summary': typeof appAuthedAdminSummaryRoute
   '/(app)/_authed/attendance/$date': typeof appAuthedAttendanceDateRoute
   '/(app)/_authed/requests/new': typeof appAuthedRequestsNewRoute
   '/(app)/_authed/admin/settings/members': typeof appAuthedAdminSettingsMembersRoute
+  '/(app)/_authed/admin/members/': typeof appAuthedAdminMembersIndexRoute
   '/(app)/_authed/admin/settings/': typeof appAuthedAdminSettingsIndexRoute
+  '/(app)/_authed/admin/members/$userId/$date': typeof appAuthedAdminMembersUserIdDateRoute
+  '/(app)/_authed/admin/members/$userId/': typeof appAuthedAdminMembersUserIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -414,6 +444,7 @@ export interface FileRouteTypes {
     | '/api/attendance/clock-in'
     | '/api/attendance/clock-out'
     | '/api/attendance/detail'
+    | '/api/attendance/edit-entry'
     | '/api/attendance/list'
     | '/api/attendance/today'
     | '/api/auth/$'
@@ -432,13 +463,15 @@ export interface FileRouteTypes {
     | '/api/summary/lock'
     | '/api/summary/monthly'
     | '/admin/settings'
-    | '/admin/members'
     | '/admin/requests'
     | '/admin/summary'
     | '/attendance/$date'
     | '/requests/new'
     | '/admin/settings/members'
+    | '/admin/members/'
     | '/admin/settings/'
+    | '/admin/members/$userId/$date'
+    | '/admin/members/$userId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -456,6 +489,7 @@ export interface FileRouteTypes {
     | '/api/attendance/clock-in'
     | '/api/attendance/clock-out'
     | '/api/attendance/detail'
+    | '/api/attendance/edit-entry'
     | '/api/attendance/list'
     | '/api/attendance/today'
     | '/api/auth/$'
@@ -473,13 +507,15 @@ export interface FileRouteTypes {
     | '/api/organization/update'
     | '/api/summary/lock'
     | '/api/summary/monthly'
-    | '/admin/members'
     | '/admin/requests'
     | '/admin/summary'
     | '/attendance/$date'
     | '/requests/new'
     | '/admin/settings/members'
+    | '/admin/members'
     | '/admin/settings'
+    | '/admin/members/$userId/$date'
+    | '/admin/members/$userId'
   id:
     | '__root__'
     | '/(app)/_authed'
@@ -498,6 +534,7 @@ export interface FileRouteTypes {
     | '/api/attendance/clock-in'
     | '/api/attendance/clock-out'
     | '/api/attendance/detail'
+    | '/api/attendance/edit-entry'
     | '/api/attendance/list'
     | '/api/attendance/today'
     | '/api/auth/$'
@@ -516,13 +553,15 @@ export interface FileRouteTypes {
     | '/api/summary/lock'
     | '/api/summary/monthly'
     | '/(app)/_authed/admin/settings'
-    | '/(app)/_authed/admin/members'
     | '/(app)/_authed/admin/requests'
     | '/(app)/_authed/admin/summary'
     | '/(app)/_authed/attendance/$date'
     | '/(app)/_authed/requests/new'
     | '/(app)/_authed/admin/settings/members'
+    | '/(app)/_authed/admin/members/'
     | '/(app)/_authed/admin/settings/'
+    | '/(app)/_authed/admin/members/$userId/$date'
+    | '/(app)/_authed/admin/members/$userId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -538,6 +577,7 @@ export interface RootRouteChildren {
   ApiAttendanceClockInRoute: typeof ApiAttendanceClockInRoute
   ApiAttendanceClockOutRoute: typeof ApiAttendanceClockOutRoute
   ApiAttendanceDetailRoute: typeof ApiAttendanceDetailRoute
+  ApiAttendanceEditEntryRoute: typeof ApiAttendanceEditEntryRoute
   ApiAttendanceListRoute: typeof ApiAttendanceListRoute
   ApiAttendanceTodayRoute: typeof ApiAttendanceTodayRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -720,6 +760,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAttendanceListRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/attendance/edit-entry': {
+      id: '/api/attendance/edit-entry'
+      path: '/api/attendance/edit-entry'
+      fullPath: '/api/attendance/edit-entry'
+      preLoaderRoute: typeof ApiAttendanceEditEntryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/attendance/detail': {
       id: '/api/attendance/detail'
       path: '/api/attendance/detail'
@@ -818,13 +865,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof appAuthedAdminRequestsRouteImport
       parentRoute: typeof appAuthedAdminRouteRoute
     }
-    '/(app)/_authed/admin/members': {
-      id: '/(app)/_authed/admin/members'
-      path: '/members'
-      fullPath: '/admin/members'
-      preLoaderRoute: typeof appAuthedAdminMembersRouteImport
-      parentRoute: typeof appAuthedAdminRouteRoute
-    }
     '/(app)/_authed/admin/settings': {
       id: '/(app)/_authed/admin/settings'
       path: '/settings'
@@ -839,12 +879,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof appAuthedAdminSettingsIndexRouteImport
       parentRoute: typeof appAuthedAdminSettingsRouteRoute
     }
+    '/(app)/_authed/admin/members/': {
+      id: '/(app)/_authed/admin/members/'
+      path: '/members'
+      fullPath: '/admin/members/'
+      preLoaderRoute: typeof appAuthedAdminMembersIndexRouteImport
+      parentRoute: typeof appAuthedAdminRouteRoute
+    }
     '/(app)/_authed/admin/settings/members': {
       id: '/(app)/_authed/admin/settings/members'
       path: '/members'
       fullPath: '/admin/settings/members'
       preLoaderRoute: typeof appAuthedAdminSettingsMembersRouteImport
       parentRoute: typeof appAuthedAdminSettingsRouteRoute
+    }
+    '/(app)/_authed/admin/members/$userId/': {
+      id: '/(app)/_authed/admin/members/$userId/'
+      path: '/members/$userId'
+      fullPath: '/admin/members/$userId/'
+      preLoaderRoute: typeof appAuthedAdminMembersUserIdIndexRouteImport
+      parentRoute: typeof appAuthedAdminRouteRoute
+    }
+    '/(app)/_authed/admin/members/$userId/$date': {
+      id: '/(app)/_authed/admin/members/$userId/$date'
+      path: '/members/$userId/$date'
+      fullPath: '/admin/members/$userId/$date'
+      preLoaderRoute: typeof appAuthedAdminMembersUserIdDateRouteImport
+      parentRoute: typeof appAuthedAdminRouteRoute
     }
   }
 }
@@ -867,17 +928,21 @@ const appAuthedAdminSettingsRouteRouteWithChildren =
 
 interface appAuthedAdminRouteRouteChildren {
   appAuthedAdminSettingsRouteRoute: typeof appAuthedAdminSettingsRouteRouteWithChildren
-  appAuthedAdminMembersRoute: typeof appAuthedAdminMembersRoute
   appAuthedAdminRequestsRoute: typeof appAuthedAdminRequestsRoute
   appAuthedAdminSummaryRoute: typeof appAuthedAdminSummaryRoute
+  appAuthedAdminMembersIndexRoute: typeof appAuthedAdminMembersIndexRoute
+  appAuthedAdminMembersUserIdDateRoute: typeof appAuthedAdminMembersUserIdDateRoute
+  appAuthedAdminMembersUserIdIndexRoute: typeof appAuthedAdminMembersUserIdIndexRoute
 }
 
 const appAuthedAdminRouteRouteChildren: appAuthedAdminRouteRouteChildren = {
   appAuthedAdminSettingsRouteRoute:
     appAuthedAdminSettingsRouteRouteWithChildren,
-  appAuthedAdminMembersRoute: appAuthedAdminMembersRoute,
   appAuthedAdminRequestsRoute: appAuthedAdminRequestsRoute,
   appAuthedAdminSummaryRoute: appAuthedAdminSummaryRoute,
+  appAuthedAdminMembersIndexRoute: appAuthedAdminMembersIndexRoute,
+  appAuthedAdminMembersUserIdDateRoute: appAuthedAdminMembersUserIdDateRoute,
+  appAuthedAdminMembersUserIdIndexRoute: appAuthedAdminMembersUserIdIndexRoute,
 }
 
 const appAuthedAdminRouteRouteWithChildren =
@@ -936,6 +1001,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAttendanceClockInRoute: ApiAttendanceClockInRoute,
   ApiAttendanceClockOutRoute: ApiAttendanceClockOutRoute,
   ApiAttendanceDetailRoute: ApiAttendanceDetailRoute,
+  ApiAttendanceEditEntryRoute: ApiAttendanceEditEntryRoute,
   ApiAttendanceListRoute: ApiAttendanceListRoute,
   ApiAttendanceTodayRoute: ApiAttendanceTodayRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,

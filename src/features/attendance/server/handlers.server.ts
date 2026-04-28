@@ -2,6 +2,7 @@ import { and, asc, between, eq, inArray, isNull } from 'drizzle-orm'
 import { db } from '@/shared/lib/db.server'
 import {
   breaks,
+  memberships,
   monthlyLocks,
   timeEntries,
   type Break as BreakRow,
@@ -13,8 +14,10 @@ import type {
   BreakInterval,
   DailyTotal,
   TimeEntry,
+  TimeEntryStatus,
   TodayStatus,
 } from '../types'
+import type { EditAttendanceEntryInput } from '../schemas'
 
 function toTimeEntryDTO(entry: TimeEntryRow, breakRows: BreakRow[]): TimeEntry {
   return {
@@ -290,4 +293,127 @@ export async function getAttendanceDetailHandler(
     .from(breaks)
     .where(eq(breaks.timeEntryId, entry.id))
   return { entry: toTimeEntryDTO(entry, breakRows) }
+}
+
+// ----- 直接編集 (admin+ 限定) -----
+
+function deriveStatus(
+  clockInAt: string | null,
+  clockOutAt: string | null,
+): TimeEntryStatus {
+  if (clockOutAt) return 'finished'
+  if (clockInAt) return 'working'
+  return 'not_started'
+}
+
+export async function editAttendanceEntryHandler(
+  ctx: ApiCallerContext,
+  input: EditAttendanceEntryInput,
+): Promise<{ entry: TimeEntry }> {
+  // 1) 対象 user が同じ組織か検証 (cross-org 攻撃防止)
+  const targetRows = await db
+    .select()
+    .from(memberships)
+    .where(
+      and(
+        eq(memberships.userId, input.userId),
+        eq(memberships.organizationId, ctx.organization.id),
+      ),
+    )
+    .limit(1)
+  if (!targetRows[0]) {
+    const e = new Error('TARGET_NOT_FOUND')
+    ;(e as { code?: string }).code = 'TARGET_NOT_FOUND'
+    throw e
+  }
+
+  // 2) 月次締めロック中は編集不可
+  await ensureNotLocked(ctx, input.workDate)
+
+  // 3) 休憩区間は出勤〜退勤の枠内かチェック
+  if (input.clockInAt) {
+    const inMs = new Date(input.clockInAt).getTime()
+    const outMs = input.clockOutAt
+      ? new Date(input.clockOutAt).getTime()
+      : Number.POSITIVE_INFINITY
+    for (const b of input.breaks) {
+      const bs = new Date(b.startAt).getTime()
+      const be = new Date(b.endAt).getTime()
+      if (bs < inMs || be > outMs || bs >= be) {
+        const e = new Error('INVALID_BREAK_RANGE')
+        ;(e as { code?: string }).code = 'INVALID_BREAK_RANGE'
+        throw e
+      }
+    }
+  } else if (input.breaks.length > 0) {
+    const e = new Error('BREAK_REQUIRES_CLOCK_IN')
+    ;(e as { code?: string }).code = 'BREAK_REQUIRES_CLOCK_IN'
+    throw e
+  }
+
+  // 4) upsert + breaks 全置換 (transaction)
+  const status = deriveStatus(input.clockInAt, input.clockOutAt)
+  const entryId = await db.transaction(async (tx) => {
+    const existing = await tx
+      .select()
+      .from(timeEntries)
+      .where(
+        and(
+          eq(timeEntries.userId, input.userId),
+          eq(timeEntries.workDate, input.workDate),
+        ),
+      )
+      .limit(1)
+    let id: string
+    if (existing[0]) {
+      id = existing[0].id
+      await tx
+        .update(timeEntries)
+        .set({
+          clockInAt: input.clockInAt ? new Date(input.clockInAt) : null,
+          clockOutAt: input.clockOutAt ? new Date(input.clockOutAt) : null,
+          status,
+          noteForUser: input.note ?? existing[0].noteForUser,
+          updatedAt: new Date(),
+        })
+        .where(eq(timeEntries.id, id))
+    } else {
+      const [created] = await tx
+        .insert(timeEntries)
+        .values({
+          organizationId: ctx.organization.id,
+          userId: input.userId,
+          workDate: input.workDate,
+          clockInAt: input.clockInAt ? new Date(input.clockInAt) : null,
+          clockOutAt: input.clockOutAt ? new Date(input.clockOutAt) : null,
+          status,
+          noteForUser: input.note ?? null,
+        })
+        .returning()
+      if (!created) throw new Error('time_entry insert failed')
+      id = created.id
+    }
+    // breaks 全置換
+    await tx.delete(breaks).where(eq(breaks.timeEntryId, id))
+    for (const b of input.breaks) {
+      await tx.insert(breaks).values({
+        timeEntryId: id,
+        startAt: new Date(b.startAt),
+        endAt: new Date(b.endAt),
+      })
+    }
+    return id
+  })
+
+  // 5) 結果を返す
+  const [updated] = await db
+    .select()
+    .from(timeEntries)
+    .where(eq(timeEntries.id, entryId))
+  if (!updated) throw new Error('time_entry not found after edit')
+  const breakRows = await db
+    .select()
+    .from(breaks)
+    .where(eq(breaks.timeEntryId, entryId))
+  return { entry: toTimeEntryDTO(updated, breakRows) }
 }

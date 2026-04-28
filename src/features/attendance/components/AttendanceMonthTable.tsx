@@ -30,11 +30,9 @@ function fmtMinutes(m: number): string {
 export function AttendanceMonthTable({
   yearMonth,
   userId,
-  detailHrefBase = '/attendance',
 }: {
   yearMonth: string
   userId?: string
-  detailHrefBase?: string
 }) {
   const { data: items } = useSuspenseQuery(
     attendanceQueries.monthly(yearMonth, userId),
@@ -66,12 +64,23 @@ export function AttendanceMonthTable({
             {items.map((d) => (
               <TableRow key={d.workDate}>
                 <TableCell>
-                  <Link
-                    to={`${detailHrefBase}/${d.workDate}`}
-                    className="underline-offset-4 hover:underline"
-                  >
-                    {d.workDate}
-                  </Link>
+                  {userId ? (
+                    <Link
+                      to="/admin/members/$userId/$date"
+                      params={{ userId, date: d.workDate }}
+                      className="underline-offset-4 hover:underline"
+                    >
+                      {d.workDate}
+                    </Link>
+                  ) : (
+                    <Link
+                      to="/attendance/$date"
+                      params={{ date: d.workDate }}
+                      className="underline-offset-4 hover:underline"
+                    >
+                      {d.workDate}
+                    </Link>
+                  )}
                 </TableCell>
                 <TableCell>
                   <Badge variant="outline">{STATUS_LABEL[d.status]}</Badge>

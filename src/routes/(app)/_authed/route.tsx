@@ -15,11 +15,13 @@ import {
   BarChart3,
   Settings,
   LogOut,
+  Loader2,
 } from 'lucide-react'
 import { authClient } from '@/features/auth'
 import { Button } from '@/shared/ui/button'
 import { Separator } from '@/shared/ui/separator'
 import { Badge } from '@/shared/ui/badge'
+import { ClientOnly } from '@/shared/ui/client-only'
 import { cn } from '@/shared/lib/utils'
 
 export const Route = createFileRoute('/(app)/_authed')({
@@ -114,7 +116,18 @@ function AuthedLayout() {
 
       <main className="bg-background">
         <div className="container mx-auto px-8 py-6">
-          <Outlet />
+          {/* authed page の中身は session cookie 必須の HTTP fetch を含むので
+              SSR では描画せず、client mount 後に表示する */}
+          <ClientOnly
+            fallback={
+              <div className="flex items-center gap-2 text-muted-foreground py-8">
+                <Loader2 className="size-4 animate-spin" />
+                読み込み中…
+              </div>
+            }
+          >
+            <Outlet />
+          </ClientOnly>
         </div>
       </main>
     </div>

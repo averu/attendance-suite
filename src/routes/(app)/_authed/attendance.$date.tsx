@@ -19,7 +19,7 @@ function AttendanceDayScreen() {
         </div>
         <div className="flex items-center gap-2">
           <Button asChild variant="outline" size="sm">
-            <Link to={`/requests/new?date=${params.date}`}>
+            <Link to="/requests/new" search={{ date: params.date }}>
               <FileEdit />
               修正申請
             </Link>

@@ -1,5 +1,6 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { Trash2 } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
+import { CalendarDays, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { organizationQueries } from '../queries'
 import { useChangeRole, useRemoveMember } from '../mutations'
@@ -38,6 +39,7 @@ export function MemberTable({ canEdit }: { canEdit: boolean }) {
               <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>参加日</TableHead>
+              <TableHead className="w-32">勤怠</TableHead>
               {canEdit && <TableHead className="w-20">操作</TableHead>}
             </TableRow>
           </TableHeader>
@@ -77,6 +79,14 @@ export function MemberTable({ canEdit }: { canEdit: boolean }) {
                 </TableCell>
                 <TableCell className="text-muted-foreground text-sm">
                   {new Date(m.joinedAt).toLocaleDateString('ja-JP')}
+                </TableCell>
+                <TableCell>
+                  <Button asChild variant="outline" size="sm">
+                    <Link to="/admin/members/$userId" params={{ userId: m.userId }}>
+                      <CalendarDays />
+                      勤怠
+                    </Link>
+                  </Button>
                 </TableCell>
                 {canEdit && (
                   <TableCell>
