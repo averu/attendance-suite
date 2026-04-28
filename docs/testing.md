@@ -60,7 +60,8 @@ export function renderWithRouter(
 export const createPostHandler = async ({ data }) => { /* ... */ }
 export const createPostFn = createServerFn({ method: 'POST' })
   .inputValidator((raw) => CreatePostInput.parse(raw))
-  .handler(createPostHandler)
+  // inline arrow で wrap (Vite transform が第一引数を注入するため)
+  .handler(async (ctx) => createPostHandler(ctx))
 
 // __tests__/createPost.test.ts
 import { createPostHandler } from '../server/createPost'

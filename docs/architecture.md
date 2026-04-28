@@ -47,7 +47,7 @@ src/
     ├── lib/                      # 汎用ユーティリティ
     ├── config/
     │   ├── env.server.ts         # zod parse、createServerOnlyFn でラップ
-    │   └── env.client.ts         # VITE_ 接頭辞のみ
+    │   └── env.public.ts         # VITE_PUBLIC_ 接頭辞のみ (server/client 両方で読む)
     ├── server/
     │   └── middleware/           # auth / logger / tenant / rate-limit
     └── test/

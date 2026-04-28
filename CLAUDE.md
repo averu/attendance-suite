@@ -44,7 +44,7 @@ React + Vite + TypeScript + TanStack Start で動かす features 凝集型アプ
 ## ピットフォール対応
 
 - Hydration mismatch: `Date.now`/`Math.random`/`window` を render に直書きしない。i18n/locale はサーバ側で確定し cookie 経由で client へ
-- env: `src/shared/config/env.server.ts` (zod parse) と `env.client.ts` を分離
+- env: `src/shared/config/env.server.ts` (zod parse) と `env.public.ts` を分離。**`*.client.*` 命名は禁止** (Start の import-protection plugin が SSR import を拒否する)
 - server fn テスト: `handler` を named export して middleware 抜きで呼ぶ
 
 ## 詳細ドキュメント

@@ -14,7 +14,7 @@ pnpm add better-auth
 
 ```ts
 import { betterAuth } from 'better-auth'
-import { tanstackStartCookies } from 'better-auth/integrations/tanstack-start'
+import { tanstackStartCookies } from 'better-auth/tanstack-start'
 
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET!,
@@ -33,12 +33,16 @@ export const auth = betterAuth({
 `src/routes/api/auth/$.ts`:
 
 ```ts
-import { createServerFileRoute } from '@tanstack/react-start/server'
-import { auth } from '@/features/auth/server/auth'
+// v1.167+ では createFileRoute(path)({ server: { handlers: ... } })
+import { createFileRoute } from '@tanstack/react-router'
+import { auth } from '@/features/auth/server/auth.server'
 
-export const ServerRoute = createServerFileRoute('/api/auth/$').methods({
-  GET: ({ request }) => auth.handler(request),
-  POST: ({ request }) => auth.handler(request),
+export const Route = createFileRoute('/api/auth/$')({
+  server: {
+    handlers: {
+      ANY: ({ request }) => auth.handler(request),
+    },
+  },
 })
 ```
 

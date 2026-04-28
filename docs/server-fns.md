@@ -18,7 +18,9 @@ export const loginHandler = async ({ data }: { data: z.infer<typeof Input> }) =>
 
 export const loginFn = createServerFn({ method: 'POST' })
   .inputValidator((raw) => Input.parse(raw))
-  .handler(loginHandler)
+  // .handler(loginHandler) は build-time transform で第二引数として注入されるので
+  // named handler を直接渡すと壊れる。inline arrow で wrap する。
+  .handler(async (ctx) => loginHandler(ctx))
 ```
 
 ## 必須ルール
@@ -74,8 +76,9 @@ export const createPostFn = createServerFn({ method: 'POST' })
 - **client**: `import.meta.env.VITE_*` のみ
 - **誤って漏らさないために**:
   - `src/shared/config/env.server.ts` で zod parse、`createServerOnlyFn` でラップ
-  - `src/shared/config/env.client.ts` は `VITE_` 接頭辞のみ
+  - `src/shared/config/env.public.ts` は `VITE_PUBLIC_` 接頭辞のみ (server/client 両方で読む isomorphic 値)
   - シークレットに `VITE_` を**絶対に付けない**
+  - **ファイル名に `.client.` を入れない** (Start の import-protection が SSR import を拒否する)
 
 ```ts
 // src/shared/config/env.server.ts
