@@ -43,6 +43,13 @@
       "when": 1777429772271,
       "tag": "0005_huge_bulldozer",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1777434522267,
+      "tag": "0006_curved_random",
+      "breakpoints": true
     }
   ]
 }

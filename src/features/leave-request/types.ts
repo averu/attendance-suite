@@ -38,6 +38,17 @@ export const LEAVE_STATUS_LABEL: Record<LeaveStatus, string> = {
   cancelled: 'キャンセル',
 }
 
+// 管理者用: 1 メンバーの付与履歴 1 件
+export type AdminLeaveGrantDTO = {
+  id: string
+  userId: string
+  grantDate: string
+  grantedDays: number
+  source: 'auto' | 'manual'
+  note: string | null
+  createdAt: string
+}
+
 // /api/admin/leave-obligations のレスポンス (org 単位)
 export type OrgPaidLeaveObligationDTO = {
   userId: string

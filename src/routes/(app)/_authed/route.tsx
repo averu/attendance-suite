@@ -16,6 +16,7 @@ import {
   PlaneTakeoff,
   BarChart3,
   Settings,
+  Wrench,
   LogOut,
   Loader2,
   UserCircle,
@@ -153,9 +154,20 @@ function AuthedLayout() {
                 月次集計
               </NavLink>
               {isOwner && (
-                <NavLink to="/admin/settings" icon={<Settings className="size-4" />}>
-                  組織設定
-                </NavLink>
+                <>
+                  <NavLink
+                    to="/admin/setup"
+                    icon={<Wrench className="size-4" />}
+                  >
+                    初期セットアップ
+                  </NavLink>
+                  <NavLink
+                    to="/admin/settings"
+                    icon={<Settings className="size-4" />}
+                  >
+                    組織設定
+                  </NavLink>
+                </>
               )}
             </nav>
           </>

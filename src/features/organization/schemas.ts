@@ -8,6 +8,12 @@ export const InviteInputSchema = z.object({
   role: InviteRoleSchema.default('member'),
 })
 
+// 一括招待: 1-100 件、role は全件共通
+export const BulkInviteInputSchema = z.object({
+  emails: z.array(z.string().email().max(255)).min(1).max(100),
+  role: InviteRoleSchema.default('member'),
+})
+
 export const ChangeRoleInputSchema = z.object({
   membershipId: z.string().uuid(),
   role: RoleSchema,
@@ -35,6 +41,11 @@ export const RevokeInvitationInputSchema = z.object({
   invitationId: z.string().uuid(),
 })
 
+// 一括削除: 1-500 件、acceptedAt 済みは skip
+export const BulkRevokeInvitationsInputSchema = z.object({
+  invitationIds: z.array(z.string().uuid()).min(1).max(500),
+})
+
 // 労務情報 (有給算定の入力) を更新するスキーマ。null を渡すとクリア。
 export const UpdateMemberWorkProfileInputSchema = z.object({
   membershipId: z.string().uuid(),
@@ -54,4 +65,8 @@ export type AcceptInvitationInput = z.infer<typeof AcceptInvitationInputSchema>
 export type RevokeInvitationInput = z.infer<typeof RevokeInvitationInputSchema>
 export type UpdateMemberWorkProfileInput = z.infer<
   typeof UpdateMemberWorkProfileInputSchema
+>
+export type BulkInviteInput = z.infer<typeof BulkInviteInputSchema>
+export type BulkRevokeInvitationsInput = z.infer<
+  typeof BulkRevokeInvitationsInputSchema
 >

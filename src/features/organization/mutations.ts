@@ -2,6 +2,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { postJson } from '@/shared/lib/apiClient'
 import type {
   AcceptInvitationInput,
+  BulkInviteInput,
+  BulkRevokeInvitationsInput,
   ChangeRoleInput,
   InviteInput,
   RemoveMemberInput,
@@ -9,6 +11,14 @@ import type {
   UpdateMemberWorkProfileInput,
   UpdateOrganizationInput,
 } from './schemas'
+
+export type BulkInviteResultItem = {
+  email: string
+  status: 'invited' | 'skipped'
+  token?: string
+  expiresAt?: string
+  skipReason?: 'ALREADY_MEMBER' | 'INVITATION_PENDING'
+}
 
 export function useInviteMember() {
   const qc = useQueryClient()
@@ -47,6 +57,35 @@ export function useRevokeInvitation() {
       postJson<{ ok: true }>('/api/organization/revoke-invitation', input),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['organization', 'invitations'] })
+    },
+  })
+}
+
+export function useBulkRevokeInvitations() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: BulkRevokeInvitationsInput) =>
+      postJson<{ deletedCount: number; skippedCount: number }>(
+        '/api/organization/revoke-invitation/bulk',
+        input,
+      ),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['organization', 'invitations'] })
+    },
+  })
+}
+
+export function useBulkInviteMembers() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: BulkInviteInput) =>
+      postJson<{ items: BulkInviteResultItem[] }>(
+        '/api/organization/invitations/bulk',
+        input,
+      ),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['organization', 'invitations'] })
+      qc.invalidateQueries({ queryKey: ['organization', 'members'] })
     },
   })
 }

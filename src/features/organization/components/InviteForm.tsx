@@ -2,7 +2,11 @@ import { useMemo, useState } from 'react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { AlertTriangle, Copy, Loader2, Send, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { useInviteMember, useRevokeInvitation } from '../mutations'
+import {
+  useBulkRevokeInvitations,
+  useInviteMember,
+  useRevokeInvitation,
+} from '../mutations'
 import { organizationQueries } from '../queries'
 import { categorizeInvitations } from '../categorizeInvitations'
 import type { CategorizedInvitation } from '../categorizeInvitations'
@@ -33,6 +37,7 @@ export function InviteForm() {
   const [issued, setIssued] = useState<string | null>(null)
   const invite = useInviteMember()
   const revoke = useRevokeInvitation()
+  const bulkRevoke = useBulkRevokeInvitations()
   const { data: invitations } = useSuspenseQuery(organizationQueries.invitations())
 
   // 招待リストを期限基準で active / expired に分類。daysRemaining 等も付与される。
@@ -53,6 +58,21 @@ export function InviteForm() {
       { invitationId },
       {
         onSuccess: () => toast.success('招待を削除しました'),
+        onError: (e) => toast.error((e as Error).message),
+      },
+    )
+  }
+
+  function onRevokeAllExpired() {
+    if (expired.length === 0) return
+    if (!confirm(`期限切れの招待 ${expired.length} 件を削除しますか？`)) return
+    bulkRevoke.mutate(
+      { invitationIds: expired.map((e) => e.id) },
+      {
+        onSuccess: (r) =>
+          toast.success(
+            `${r.deletedCount} 件削除${r.skippedCount > 0 ? `、${r.skippedCount} 件は対象外` : ''}`,
+          ),
         onError: (e) => toast.error((e as Error).message),
       },
     )
@@ -174,10 +194,26 @@ export function InviteForm() {
               )}
               {expired.length > 0 && (
                 <div className="grid gap-2">
-                  <h4 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                    <AlertTriangle className="size-3.5" />
-                    期限切れ ({expired.length})
-                  </h4>
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                      <AlertTriangle className="size-3.5" />
+                      期限切れ ({expired.length})
+                    </h4>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={bulkRevoke.isPending}
+                      onClick={onRevokeAllExpired}
+                    >
+                      {bulkRevoke.isPending ? (
+                        <Loader2 className="animate-spin" />
+                      ) : (
+                        <Trash2 className="size-3.5" />
+                      )}
+                      期限切れを一括削除
+                    </Button>
+                  </div>
                   <ul className="grid gap-2 text-sm">
                     {expired.map((i) => (
                       <InvitationRow
@@ -185,7 +221,7 @@ export function InviteForm() {
                         invitation={i}
                         onCopy={() => copyInviteUrl(i.token)}
                         onRevoke={() => onRevoke(i.id, i.email)}
-                        revokePending={revoke.isPending}
+                        revokePending={revoke.isPending || bulkRevoke.isPending}
                       />
                     ))}
                   </ul>

@@ -4,6 +4,7 @@ import { ArrowLeft, Loader2 } from 'lucide-react'
 import { z } from 'zod'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { AttendanceMonthTable } from '@/features/attendance'
+import { AdminMemberLeaveGrants } from '@/features/leave-request'
 import {
   MemberWorkProfileForm,
   organizationQueries,
@@ -63,6 +64,16 @@ function MemberAttendanceScreen() {
         fallback={
           <div className="flex items-center gap-2 text-muted-foreground">
             <Loader2 className="size-4 animate-spin" />
+            付与履歴を読み込み中…
+          </div>
+        }
+      >
+        <MemberLeaveGrantsSection userId={params.userId} />
+      </Suspense>
+      <Suspense
+        fallback={
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="size-4 animate-spin" />
             読み込み中…
           </div>
         }
@@ -78,6 +89,13 @@ function MemberWorkProfileSection({ userId }: { userId: string }) {
   const m = members.find((mm) => mm.userId === userId)
   if (!m) return null
   return <MemberWorkProfileForm member={m} />
+}
+
+function MemberLeaveGrantsSection({ userId }: { userId: string }) {
+  const { data: members } = useSuspenseQuery(organizationQueries.members())
+  const m = members.find((mm) => mm.userId === userId)
+  if (!m) return null
+  return <AdminMemberLeaveGrants userId={m.userId} userName={m.name} />
 }
 
 function MemberHeader({

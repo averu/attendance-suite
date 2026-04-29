@@ -1,4 +1,4 @@
-import { and, eq, isNull, sql } from 'drizzle-orm'
+import { and, eq, inArray, isNull, sql } from 'drizzle-orm'
 import { randomBytes } from 'node:crypto'
 import { db } from '@/shared/lib/db.server'
 import {
@@ -13,6 +13,8 @@ import type {
 } from '@/shared/server/apiAuth'
 import type {
   AcceptInvitationInput,
+  BulkInviteInput,
+  BulkRevokeInvitationsInput,
   ChangeRoleInput,
   InviteInput,
   RemoveMemberInput,
@@ -99,6 +101,106 @@ export async function inviteMemberHandler(
     .returning()
   if (!row) throw new Error('invitation insert failed')
   return { token: row.token, expiresAt: row.expiresAt.toISOString() }
+}
+
+export type BulkInviteResultItem = {
+  email: string
+  status: 'invited' | 'skipped'
+  /** invited 時の token (受諾 URL は呼び出し側で組み立て) */
+  token?: string
+  expiresAt?: string
+  /** skipped 時の理由 */
+  skipReason?: 'ALREADY_MEMBER' | 'INVITATION_PENDING'
+}
+
+/**
+ * 一括招待 handler:
+ *   - 同一 email を email lookup で重複排除 (case-insensitive)
+ *   - 既に同 org の member は ALREADY_MEMBER で skip
+ *   - 既に未受諾 (acceptedAt=null) の有効期限内 invitation がある email は INVITATION_PENDING で skip
+ *   - 残りに新規 invitation を発行 (role は全件共通)
+ */
+export async function bulkInviteMembersHandler(
+  ctx: ApiCallerContext,
+  input: BulkInviteInput,
+): Promise<{ items: BulkInviteResultItem[] }> {
+  // 重複排除 (lowercase で比較)
+  const seen = new Set<string>()
+  const dedup: string[] = []
+  for (const e of input.emails) {
+    const key = e.toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    dedup.push(e)
+  }
+
+  if (dedup.length === 0) return { items: [] }
+
+  // 既存 membership: users.email join
+  const memberRows = await db
+    .select({ email: users.email })
+    .from(memberships)
+    .innerJoin(users, eq(users.id, memberships.userId))
+    .where(eq(memberships.organizationId, ctx.organization.id))
+  const memberEmails = new Set(memberRows.map((r) => r.email.toLowerCase()))
+
+  // 既存の未受諾 invitation (期限切れは無視 = 再発行を許す)
+  const now = new Date()
+  const inviteRows = await db
+    .select()
+    .from(invitations)
+    .where(
+      and(
+        eq(invitations.organizationId, ctx.organization.id),
+        isNull(invitations.acceptedAt),
+      ),
+    )
+  const pendingEmails = new Set(
+    inviteRows
+      .filter((r) => r.expiresAt.getTime() > now.getTime())
+      .map((r) => r.email.toLowerCase()),
+  )
+
+  const items: BulkInviteResultItem[] = []
+  const expiresAt = new Date(
+    Date.now() + INVITATION_TTL_DAYS * 24 * 60 * 60 * 1000,
+  )
+  for (const email of dedup) {
+    const key = email.toLowerCase()
+    if (memberEmails.has(key)) {
+      items.push({ email, status: 'skipped', skipReason: 'ALREADY_MEMBER' })
+      continue
+    }
+    if (pendingEmails.has(key)) {
+      items.push({ email, status: 'skipped', skipReason: 'INVITATION_PENDING' })
+      continue
+    }
+    const token = generateToken()
+    const [row] = await db
+      .insert(invitations)
+      .values({
+        organizationId: ctx.organization.id,
+        email,
+        role: input.role,
+        token,
+        expiresAt,
+        invitedByUserId: ctx.user.id,
+      })
+      .returning()
+    if (!row) {
+      // 失敗は skip 扱いで続行 (片付かない)
+      items.push({ email, status: 'skipped', skipReason: 'INVITATION_PENDING' })
+      continue
+    }
+    items.push({
+      email,
+      status: 'invited',
+      token: row.token,
+      expiresAt: row.expiresAt.toISOString(),
+    })
+  }
+
+  return { items }
 }
 
 export async function acceptInvitationHandler(
@@ -229,6 +331,35 @@ export async function revokeInvitationHandler(
   }
   await db.delete(invitations).where(eq(invitations.id, input.invitationId))
   return { ok: true }
+}
+
+/**
+ * 一括削除: 自 org のもの + 未受諾 (acceptedAt=null) のみ DELETE。
+ * 受諾済の ID が混じっていても skip して処理を進める。
+ * 戻り値: { deletedCount, skippedCount } (skipped = 他組織 + 受諾済 + 存在しない)
+ */
+export async function bulkRevokeInvitationsHandler(
+  ctx: ApiCallerContext,
+  input: BulkRevokeInvitationsInput,
+): Promise<{ deletedCount: number; skippedCount: number }> {
+  if (input.invitationIds.length === 0) {
+    return { deletedCount: 0, skippedCount: 0 }
+  }
+  const rows = await db
+    .select()
+    .from(invitations)
+    .where(inArray(invitations.id, input.invitationIds))
+  const targetIds = rows
+    .filter(
+      (r) => r.organizationId === ctx.organization.id && r.acceptedAt === null,
+    )
+    .map((r) => r.id)
+  const skippedCount = input.invitationIds.length - targetIds.length
+  if (targetIds.length === 0) {
+    return { deletedCount: 0, skippedCount }
+  }
+  await db.delete(invitations).where(inArray(invitations.id, targetIds))
+  return { deletedCount: targetIds.length, skippedCount }
 }
 
 export async function removeMemberHandler(

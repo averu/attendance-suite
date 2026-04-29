@@ -1,6 +1,7 @@
 import { queryOptions } from '@tanstack/react-query'
 import { getJson } from '@/shared/lib/apiClient'
 import type {
+  AdminLeaveGrantDTO,
   LeaveRequestDTO,
   OrgPaidLeaveObligationDTO,
   PaidLeaveBalanceDTO,
@@ -42,6 +43,15 @@ export const leaveRequestQueries = {
       queryFn: () =>
         getJson<{ items: OrgPaidLeaveObligationDTO[] }>(
           `/api/admin/leave-obligations${asOf ? `?asOf=${asOf}` : ''}`,
+        ),
+      select: (d) => d.items,
+    }),
+  memberGrants: (userId: string) =>
+    queryOptions({
+      queryKey: ['leave-grants', 'member', userId],
+      queryFn: () =>
+        getJson<{ items: AdminLeaveGrantDTO[] }>(
+          `/api/admin/leave-grants/list?userId=${encodeURIComponent(userId)}`,
         ),
       select: (d) => d.items,
     }),

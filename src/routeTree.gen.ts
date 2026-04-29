@@ -22,10 +22,8 @@ import { Route as ApiSummaryLockRouteImport } from './routes/api/summary/lock'
 import { Route as ApiSummaryCsvRouteImport } from './routes/api/summary/csv'
 import { Route as ApiOrganizationUpdateMemberWorkProfileRouteImport } from './routes/api/organization/update-member-work-profile'
 import { Route as ApiOrganizationUpdateRouteImport } from './routes/api/organization/update'
-import { Route as ApiOrganizationRevokeInvitationRouteImport } from './routes/api/organization/revoke-invitation'
 import { Route as ApiOrganizationRemoveMemberRouteImport } from './routes/api/organization/remove-member'
 import { Route as ApiOrganizationMembersRouteImport } from './routes/api/organization/members'
-import { Route as ApiOrganizationInvitationsRouteImport } from './routes/api/organization/invitations'
 import { Route as ApiOrganizationChangeRoleRouteImport } from './routes/api/organization/change-role'
 import { Route as ApiOrganizationAcceptInvitationRouteImport } from './routes/api/organization/accept-invitation'
 import { Route as ApiMeSwitchOrganizationRouteImport } from './routes/api/me/switch-organization'
@@ -39,6 +37,7 @@ import { Route as ApiLeaveRequestsBalanceRouteImport } from './routes/api/leave-
 import { Route as ApiLeaveRequestsApproveRouteImport } from './routes/api/leave-requests/approve'
 import { Route as ApiHolidaysDeleteRouteImport } from './routes/api/holidays/delete'
 import { Route as ApiHolidaysCreateRouteImport } from './routes/api/holidays/create'
+import { Route as ApiHolidaysBulkRouteImport } from './routes/api/holidays/bulk'
 import { Route as ApiCorrectionRequestsRejectRouteImport } from './routes/api/correction-requests/reject'
 import { Route as ApiCorrectionRequestsListOrgRouteImport } from './routes/api/correction-requests/list-org'
 import { Route as ApiCorrectionRequestsListMineRouteImport } from './routes/api/correction-requests/list-mine'
@@ -64,14 +63,23 @@ import { Route as publicInviteTokenRouteImport } from './routes/(public)/invite.
 import { Route as appAuthedProfileRouteImport } from './routes/(app)/_authed/profile'
 import { Route as appAuthedDashboardRouteImport } from './routes/(app)/_authed/dashboard'
 import { Route as appAuthedAdminRouteRouteImport } from './routes/(app)/_authed/admin/route'
+import { Route as ApiOrganizationRevokeInvitationIndexRouteImport } from './routes/api/organization/revoke-invitation/index'
+import { Route as ApiOrganizationInvitationsIndexRouteImport } from './routes/api/organization/invitations/index'
 import { Route as appAuthedRequestsIndexRouteImport } from './routes/(app)/_authed/requests/index'
 import { Route as appAuthedLeavesIndexRouteImport } from './routes/(app)/_authed/leaves/index'
 import { Route as appAuthedAttendanceIndexRouteImport } from './routes/(app)/_authed/attendance/index'
+import { Route as ApiOrganizationRevokeInvitationBulkRouteImport } from './routes/api/organization/revoke-invitation/bulk'
+import { Route as ApiOrganizationInvitationsBulkRouteImport } from './routes/api/organization/invitations/bulk'
+import { Route as ApiAdminLeaveGrantsSyncRouteImport } from './routes/api/admin/leave-grants/sync'
+import { Route as ApiAdminLeaveGrantsRemoveRouteImport } from './routes/api/admin/leave-grants/remove'
+import { Route as ApiAdminLeaveGrantsListRouteImport } from './routes/api/admin/leave-grants/list'
+import { Route as ApiAdminLeaveGrantsAddRouteImport } from './routes/api/admin/leave-grants/add'
 import { Route as appAuthedRequestsNewRouteImport } from './routes/(app)/_authed/requests/new'
 import { Route as appAuthedLeavesNewRouteImport } from './routes/(app)/_authed/leaves/new'
 import { Route as appAuthedAttendanceDateRouteImport } from './routes/(app)/_authed/attendance/$date'
 import { Route as appAuthedAdminTodayRouteImport } from './routes/(app)/_authed/admin/today'
 import { Route as appAuthedAdminSummaryRouteImport } from './routes/(app)/_authed/admin/summary'
+import { Route as appAuthedAdminSetupRouteImport } from './routes/(app)/_authed/admin/setup'
 import { Route as appAuthedAdminRequestsRouteImport } from './routes/(app)/_authed/admin/requests'
 import { Route as appAuthedAdminLeavesRouteImport } from './routes/(app)/_authed/admin/leaves'
 import { Route as appAuthedAdminSettingsRouteRouteImport } from './routes/(app)/_authed/admin/settings/route'
@@ -147,12 +155,6 @@ const ApiOrganizationUpdateRoute = ApiOrganizationUpdateRouteImport.update({
   path: '/api/organization/update',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiOrganizationRevokeInvitationRoute =
-  ApiOrganizationRevokeInvitationRouteImport.update({
-    id: '/api/organization/revoke-invitation',
-    path: '/api/organization/revoke-invitation',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const ApiOrganizationRemoveMemberRoute =
   ApiOrganizationRemoveMemberRouteImport.update({
     id: '/api/organization/remove-member',
@@ -164,12 +166,6 @@ const ApiOrganizationMembersRoute = ApiOrganizationMembersRouteImport.update({
   path: '/api/organization/members',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiOrganizationInvitationsRoute =
-  ApiOrganizationInvitationsRouteImport.update({
-    id: '/api/organization/invitations',
-    path: '/api/organization/invitations',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const ApiOrganizationChangeRoleRoute =
   ApiOrganizationChangeRoleRouteImport.update({
     id: '/api/organization/change-role',
@@ -236,6 +232,11 @@ const ApiHolidaysDeleteRoute = ApiHolidaysDeleteRouteImport.update({
 const ApiHolidaysCreateRoute = ApiHolidaysCreateRouteImport.update({
   id: '/api/holidays/create',
   path: '/api/holidays/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHolidaysBulkRoute = ApiHolidaysBulkRouteImport.update({
+  id: '/api/holidays/bulk',
+  path: '/api/holidays/bulk',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCorrectionRequestsRejectRoute =
@@ -370,6 +371,18 @@ const appAuthedAdminRouteRoute = appAuthedAdminRouteRouteImport.update({
   path: '/admin',
   getParentRoute: () => appAuthedRouteRoute,
 } as any)
+const ApiOrganizationRevokeInvitationIndexRoute =
+  ApiOrganizationRevokeInvitationIndexRouteImport.update({
+    id: '/api/organization/revoke-invitation/',
+    path: '/api/organization/revoke-invitation/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiOrganizationInvitationsIndexRoute =
+  ApiOrganizationInvitationsIndexRouteImport.update({
+    id: '/api/organization/invitations/',
+    path: '/api/organization/invitations/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const appAuthedRequestsIndexRoute = appAuthedRequestsIndexRouteImport.update({
   id: '/requests/',
   path: '/requests/',
@@ -386,6 +399,39 @@ const appAuthedAttendanceIndexRoute =
     path: '/attendance/',
     getParentRoute: () => appAuthedRouteRoute,
   } as any)
+const ApiOrganizationRevokeInvitationBulkRoute =
+  ApiOrganizationRevokeInvitationBulkRouteImport.update({
+    id: '/api/organization/revoke-invitation/bulk',
+    path: '/api/organization/revoke-invitation/bulk',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiOrganizationInvitationsBulkRoute =
+  ApiOrganizationInvitationsBulkRouteImport.update({
+    id: '/api/organization/invitations/bulk',
+    path: '/api/organization/invitations/bulk',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAdminLeaveGrantsSyncRoute = ApiAdminLeaveGrantsSyncRouteImport.update({
+  id: '/api/admin/leave-grants/sync',
+  path: '/api/admin/leave-grants/sync',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminLeaveGrantsRemoveRoute =
+  ApiAdminLeaveGrantsRemoveRouteImport.update({
+    id: '/api/admin/leave-grants/remove',
+    path: '/api/admin/leave-grants/remove',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAdminLeaveGrantsListRoute = ApiAdminLeaveGrantsListRouteImport.update({
+  id: '/api/admin/leave-grants/list',
+  path: '/api/admin/leave-grants/list',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminLeaveGrantsAddRoute = ApiAdminLeaveGrantsAddRouteImport.update({
+  id: '/api/admin/leave-grants/add',
+  path: '/api/admin/leave-grants/add',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const appAuthedRequestsNewRoute = appAuthedRequestsNewRouteImport.update({
   id: '/requests/new',
   path: '/requests/new',
@@ -409,6 +455,11 @@ const appAuthedAdminTodayRoute = appAuthedAdminTodayRouteImport.update({
 const appAuthedAdminSummaryRoute = appAuthedAdminSummaryRouteImport.update({
   id: '/summary',
   path: '/summary',
+  getParentRoute: () => appAuthedAdminRouteRoute,
+} as any)
+const appAuthedAdminSetupRoute = appAuthedAdminSetupRouteImport.update({
+  id: '/setup',
+  path: '/setup',
   getParentRoute: () => appAuthedAdminRouteRoute,
 } as any)
 const appAuthedAdminRequestsRoute = appAuthedAdminRequestsRouteImport.update({
@@ -495,6 +546,7 @@ export interface FileRoutesByFullPath {
   '/api/correction-requests/list-mine': typeof ApiCorrectionRequestsListMineRoute
   '/api/correction-requests/list-org': typeof ApiCorrectionRequestsListOrgRoute
   '/api/correction-requests/reject': typeof ApiCorrectionRequestsRejectRoute
+  '/api/holidays/bulk': typeof ApiHolidaysBulkRoute
   '/api/holidays/create': typeof ApiHolidaysCreateRoute
   '/api/holidays/delete': typeof ApiHolidaysDeleteRoute
   '/api/leave-requests/approve': typeof ApiLeaveRequestsApproveRoute
@@ -508,10 +560,8 @@ export interface FileRoutesByFullPath {
   '/api/me/switch-organization': typeof ApiMeSwitchOrganizationRoute
   '/api/organization/accept-invitation': typeof ApiOrganizationAcceptInvitationRoute
   '/api/organization/change-role': typeof ApiOrganizationChangeRoleRoute
-  '/api/organization/invitations': typeof ApiOrganizationInvitationsRoute
   '/api/organization/members': typeof ApiOrganizationMembersRoute
   '/api/organization/remove-member': typeof ApiOrganizationRemoveMemberRoute
-  '/api/organization/revoke-invitation': typeof ApiOrganizationRevokeInvitationRoute
   '/api/organization/update': typeof ApiOrganizationUpdateRoute
   '/api/organization/update-member-work-profile': typeof ApiOrganizationUpdateMemberWorkProfileRoute
   '/api/summary/csv': typeof ApiSummaryCsvRoute
@@ -522,14 +572,23 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof appAuthedAdminSettingsRouteRouteWithChildren
   '/admin/leaves': typeof appAuthedAdminLeavesRoute
   '/admin/requests': typeof appAuthedAdminRequestsRoute
+  '/admin/setup': typeof appAuthedAdminSetupRoute
   '/admin/summary': typeof appAuthedAdminSummaryRoute
   '/admin/today': typeof appAuthedAdminTodayRoute
   '/attendance/$date': typeof appAuthedAttendanceDateRoute
   '/leaves/new': typeof appAuthedLeavesNewRoute
   '/requests/new': typeof appAuthedRequestsNewRoute
+  '/api/admin/leave-grants/add': typeof ApiAdminLeaveGrantsAddRoute
+  '/api/admin/leave-grants/list': typeof ApiAdminLeaveGrantsListRoute
+  '/api/admin/leave-grants/remove': typeof ApiAdminLeaveGrantsRemoveRoute
+  '/api/admin/leave-grants/sync': typeof ApiAdminLeaveGrantsSyncRoute
+  '/api/organization/invitations/bulk': typeof ApiOrganizationInvitationsBulkRoute
+  '/api/organization/revoke-invitation/bulk': typeof ApiOrganizationRevokeInvitationBulkRoute
   '/attendance/': typeof appAuthedAttendanceIndexRoute
   '/leaves/': typeof appAuthedLeavesIndexRoute
   '/requests/': typeof appAuthedRequestsIndexRoute
+  '/api/organization/invitations/': typeof ApiOrganizationInvitationsIndexRoute
+  '/api/organization/revoke-invitation/': typeof ApiOrganizationRevokeInvitationIndexRoute
   '/admin/settings/holidays': typeof appAuthedAdminSettingsHolidaysRoute
   '/admin/settings/members': typeof appAuthedAdminSettingsMembersRoute
   '/admin/members/': typeof appAuthedAdminMembersIndexRoute
@@ -568,6 +627,7 @@ export interface FileRoutesByTo {
   '/api/correction-requests/list-mine': typeof ApiCorrectionRequestsListMineRoute
   '/api/correction-requests/list-org': typeof ApiCorrectionRequestsListOrgRoute
   '/api/correction-requests/reject': typeof ApiCorrectionRequestsRejectRoute
+  '/api/holidays/bulk': typeof ApiHolidaysBulkRoute
   '/api/holidays/create': typeof ApiHolidaysCreateRoute
   '/api/holidays/delete': typeof ApiHolidaysDeleteRoute
   '/api/leave-requests/approve': typeof ApiLeaveRequestsApproveRoute
@@ -581,10 +641,8 @@ export interface FileRoutesByTo {
   '/api/me/switch-organization': typeof ApiMeSwitchOrganizationRoute
   '/api/organization/accept-invitation': typeof ApiOrganizationAcceptInvitationRoute
   '/api/organization/change-role': typeof ApiOrganizationChangeRoleRoute
-  '/api/organization/invitations': typeof ApiOrganizationInvitationsRoute
   '/api/organization/members': typeof ApiOrganizationMembersRoute
   '/api/organization/remove-member': typeof ApiOrganizationRemoveMemberRoute
-  '/api/organization/revoke-invitation': typeof ApiOrganizationRevokeInvitationRoute
   '/api/organization/update': typeof ApiOrganizationUpdateRoute
   '/api/organization/update-member-work-profile': typeof ApiOrganizationUpdateMemberWorkProfileRoute
   '/api/summary/csv': typeof ApiSummaryCsvRoute
@@ -594,14 +652,23 @@ export interface FileRoutesByTo {
   '/api/holidays': typeof ApiHolidaysIndexRoute
   '/admin/leaves': typeof appAuthedAdminLeavesRoute
   '/admin/requests': typeof appAuthedAdminRequestsRoute
+  '/admin/setup': typeof appAuthedAdminSetupRoute
   '/admin/summary': typeof appAuthedAdminSummaryRoute
   '/admin/today': typeof appAuthedAdminTodayRoute
   '/attendance/$date': typeof appAuthedAttendanceDateRoute
   '/leaves/new': typeof appAuthedLeavesNewRoute
   '/requests/new': typeof appAuthedRequestsNewRoute
+  '/api/admin/leave-grants/add': typeof ApiAdminLeaveGrantsAddRoute
+  '/api/admin/leave-grants/list': typeof ApiAdminLeaveGrantsListRoute
+  '/api/admin/leave-grants/remove': typeof ApiAdminLeaveGrantsRemoveRoute
+  '/api/admin/leave-grants/sync': typeof ApiAdminLeaveGrantsSyncRoute
+  '/api/organization/invitations/bulk': typeof ApiOrganizationInvitationsBulkRoute
+  '/api/organization/revoke-invitation/bulk': typeof ApiOrganizationRevokeInvitationBulkRoute
   '/attendance': typeof appAuthedAttendanceIndexRoute
   '/leaves': typeof appAuthedLeavesIndexRoute
   '/requests': typeof appAuthedRequestsIndexRoute
+  '/api/organization/invitations': typeof ApiOrganizationInvitationsIndexRoute
+  '/api/organization/revoke-invitation': typeof ApiOrganizationRevokeInvitationIndexRoute
   '/admin/settings/holidays': typeof appAuthedAdminSettingsHolidaysRoute
   '/admin/settings/members': typeof appAuthedAdminSettingsMembersRoute
   '/admin/members': typeof appAuthedAdminMembersIndexRoute
@@ -642,6 +709,7 @@ export interface FileRoutesById {
   '/api/correction-requests/list-mine': typeof ApiCorrectionRequestsListMineRoute
   '/api/correction-requests/list-org': typeof ApiCorrectionRequestsListOrgRoute
   '/api/correction-requests/reject': typeof ApiCorrectionRequestsRejectRoute
+  '/api/holidays/bulk': typeof ApiHolidaysBulkRoute
   '/api/holidays/create': typeof ApiHolidaysCreateRoute
   '/api/holidays/delete': typeof ApiHolidaysDeleteRoute
   '/api/leave-requests/approve': typeof ApiLeaveRequestsApproveRoute
@@ -655,10 +723,8 @@ export interface FileRoutesById {
   '/api/me/switch-organization': typeof ApiMeSwitchOrganizationRoute
   '/api/organization/accept-invitation': typeof ApiOrganizationAcceptInvitationRoute
   '/api/organization/change-role': typeof ApiOrganizationChangeRoleRoute
-  '/api/organization/invitations': typeof ApiOrganizationInvitationsRoute
   '/api/organization/members': typeof ApiOrganizationMembersRoute
   '/api/organization/remove-member': typeof ApiOrganizationRemoveMemberRoute
-  '/api/organization/revoke-invitation': typeof ApiOrganizationRevokeInvitationRoute
   '/api/organization/update': typeof ApiOrganizationUpdateRoute
   '/api/organization/update-member-work-profile': typeof ApiOrganizationUpdateMemberWorkProfileRoute
   '/api/summary/csv': typeof ApiSummaryCsvRoute
@@ -669,14 +735,23 @@ export interface FileRoutesById {
   '/(app)/_authed/admin/settings': typeof appAuthedAdminSettingsRouteRouteWithChildren
   '/(app)/_authed/admin/leaves': typeof appAuthedAdminLeavesRoute
   '/(app)/_authed/admin/requests': typeof appAuthedAdminRequestsRoute
+  '/(app)/_authed/admin/setup': typeof appAuthedAdminSetupRoute
   '/(app)/_authed/admin/summary': typeof appAuthedAdminSummaryRoute
   '/(app)/_authed/admin/today': typeof appAuthedAdminTodayRoute
   '/(app)/_authed/attendance/$date': typeof appAuthedAttendanceDateRoute
   '/(app)/_authed/leaves/new': typeof appAuthedLeavesNewRoute
   '/(app)/_authed/requests/new': typeof appAuthedRequestsNewRoute
+  '/api/admin/leave-grants/add': typeof ApiAdminLeaveGrantsAddRoute
+  '/api/admin/leave-grants/list': typeof ApiAdminLeaveGrantsListRoute
+  '/api/admin/leave-grants/remove': typeof ApiAdminLeaveGrantsRemoveRoute
+  '/api/admin/leave-grants/sync': typeof ApiAdminLeaveGrantsSyncRoute
+  '/api/organization/invitations/bulk': typeof ApiOrganizationInvitationsBulkRoute
+  '/api/organization/revoke-invitation/bulk': typeof ApiOrganizationRevokeInvitationBulkRoute
   '/(app)/_authed/attendance/': typeof appAuthedAttendanceIndexRoute
   '/(app)/_authed/leaves/': typeof appAuthedLeavesIndexRoute
   '/(app)/_authed/requests/': typeof appAuthedRequestsIndexRoute
+  '/api/organization/invitations/': typeof ApiOrganizationInvitationsIndexRoute
+  '/api/organization/revoke-invitation/': typeof ApiOrganizationRevokeInvitationIndexRoute
   '/(app)/_authed/admin/settings/holidays': typeof appAuthedAdminSettingsHolidaysRoute
   '/(app)/_authed/admin/settings/members': typeof appAuthedAdminSettingsMembersRoute
   '/(app)/_authed/admin/members/': typeof appAuthedAdminMembersIndexRoute
@@ -717,6 +792,7 @@ export interface FileRouteTypes {
     | '/api/correction-requests/list-mine'
     | '/api/correction-requests/list-org'
     | '/api/correction-requests/reject'
+    | '/api/holidays/bulk'
     | '/api/holidays/create'
     | '/api/holidays/delete'
     | '/api/leave-requests/approve'
@@ -730,10 +806,8 @@ export interface FileRouteTypes {
     | '/api/me/switch-organization'
     | '/api/organization/accept-invitation'
     | '/api/organization/change-role'
-    | '/api/organization/invitations'
     | '/api/organization/members'
     | '/api/organization/remove-member'
-    | '/api/organization/revoke-invitation'
     | '/api/organization/update'
     | '/api/organization/update-member-work-profile'
     | '/api/summary/csv'
@@ -744,14 +818,23 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/leaves'
     | '/admin/requests'
+    | '/admin/setup'
     | '/admin/summary'
     | '/admin/today'
     | '/attendance/$date'
     | '/leaves/new'
     | '/requests/new'
+    | '/api/admin/leave-grants/add'
+    | '/api/admin/leave-grants/list'
+    | '/api/admin/leave-grants/remove'
+    | '/api/admin/leave-grants/sync'
+    | '/api/organization/invitations/bulk'
+    | '/api/organization/revoke-invitation/bulk'
     | '/attendance/'
     | '/leaves/'
     | '/requests/'
+    | '/api/organization/invitations/'
+    | '/api/organization/revoke-invitation/'
     | '/admin/settings/holidays'
     | '/admin/settings/members'
     | '/admin/members/'
@@ -790,6 +873,7 @@ export interface FileRouteTypes {
     | '/api/correction-requests/list-mine'
     | '/api/correction-requests/list-org'
     | '/api/correction-requests/reject'
+    | '/api/holidays/bulk'
     | '/api/holidays/create'
     | '/api/holidays/delete'
     | '/api/leave-requests/approve'
@@ -803,10 +887,8 @@ export interface FileRouteTypes {
     | '/api/me/switch-organization'
     | '/api/organization/accept-invitation'
     | '/api/organization/change-role'
-    | '/api/organization/invitations'
     | '/api/organization/members'
     | '/api/organization/remove-member'
-    | '/api/organization/revoke-invitation'
     | '/api/organization/update'
     | '/api/organization/update-member-work-profile'
     | '/api/summary/csv'
@@ -816,14 +898,23 @@ export interface FileRouteTypes {
     | '/api/holidays'
     | '/admin/leaves'
     | '/admin/requests'
+    | '/admin/setup'
     | '/admin/summary'
     | '/admin/today'
     | '/attendance/$date'
     | '/leaves/new'
     | '/requests/new'
+    | '/api/admin/leave-grants/add'
+    | '/api/admin/leave-grants/list'
+    | '/api/admin/leave-grants/remove'
+    | '/api/admin/leave-grants/sync'
+    | '/api/organization/invitations/bulk'
+    | '/api/organization/revoke-invitation/bulk'
     | '/attendance'
     | '/leaves'
     | '/requests'
+    | '/api/organization/invitations'
+    | '/api/organization/revoke-invitation'
     | '/admin/settings/holidays'
     | '/admin/settings/members'
     | '/admin/members'
@@ -863,6 +954,7 @@ export interface FileRouteTypes {
     | '/api/correction-requests/list-mine'
     | '/api/correction-requests/list-org'
     | '/api/correction-requests/reject'
+    | '/api/holidays/bulk'
     | '/api/holidays/create'
     | '/api/holidays/delete'
     | '/api/leave-requests/approve'
@@ -876,10 +968,8 @@ export interface FileRouteTypes {
     | '/api/me/switch-organization'
     | '/api/organization/accept-invitation'
     | '/api/organization/change-role'
-    | '/api/organization/invitations'
     | '/api/organization/members'
     | '/api/organization/remove-member'
-    | '/api/organization/revoke-invitation'
     | '/api/organization/update'
     | '/api/organization/update-member-work-profile'
     | '/api/summary/csv'
@@ -890,14 +980,23 @@ export interface FileRouteTypes {
     | '/(app)/_authed/admin/settings'
     | '/(app)/_authed/admin/leaves'
     | '/(app)/_authed/admin/requests'
+    | '/(app)/_authed/admin/setup'
     | '/(app)/_authed/admin/summary'
     | '/(app)/_authed/admin/today'
     | '/(app)/_authed/attendance/$date'
     | '/(app)/_authed/leaves/new'
     | '/(app)/_authed/requests/new'
+    | '/api/admin/leave-grants/add'
+    | '/api/admin/leave-grants/list'
+    | '/api/admin/leave-grants/remove'
+    | '/api/admin/leave-grants/sync'
+    | '/api/organization/invitations/bulk'
+    | '/api/organization/revoke-invitation/bulk'
     | '/(app)/_authed/attendance/'
     | '/(app)/_authed/leaves/'
     | '/(app)/_authed/requests/'
+    | '/api/organization/invitations/'
+    | '/api/organization/revoke-invitation/'
     | '/(app)/_authed/admin/settings/holidays'
     | '/(app)/_authed/admin/settings/members'
     | '/(app)/_authed/admin/members/'
@@ -935,6 +1034,7 @@ export interface RootRouteChildren {
   ApiCorrectionRequestsListMineRoute: typeof ApiCorrectionRequestsListMineRoute
   ApiCorrectionRequestsListOrgRoute: typeof ApiCorrectionRequestsListOrgRoute
   ApiCorrectionRequestsRejectRoute: typeof ApiCorrectionRequestsRejectRoute
+  ApiHolidaysBulkRoute: typeof ApiHolidaysBulkRoute
   ApiHolidaysCreateRoute: typeof ApiHolidaysCreateRoute
   ApiHolidaysDeleteRoute: typeof ApiHolidaysDeleteRoute
   ApiLeaveRequestsApproveRoute: typeof ApiLeaveRequestsApproveRoute
@@ -946,10 +1046,8 @@ export interface RootRouteChildren {
   ApiLeaveRequestsRejectRoute: typeof ApiLeaveRequestsRejectRoute
   ApiOrganizationAcceptInvitationRoute: typeof ApiOrganizationAcceptInvitationRoute
   ApiOrganizationChangeRoleRoute: typeof ApiOrganizationChangeRoleRoute
-  ApiOrganizationInvitationsRoute: typeof ApiOrganizationInvitationsRoute
   ApiOrganizationMembersRoute: typeof ApiOrganizationMembersRoute
   ApiOrganizationRemoveMemberRoute: typeof ApiOrganizationRemoveMemberRoute
-  ApiOrganizationRevokeInvitationRoute: typeof ApiOrganizationRevokeInvitationRoute
   ApiOrganizationUpdateRoute: typeof ApiOrganizationUpdateRoute
   ApiOrganizationUpdateMemberWorkProfileRoute: typeof ApiOrganizationUpdateMemberWorkProfileRoute
   ApiSummaryCsvRoute: typeof ApiSummaryCsvRoute
@@ -957,6 +1055,14 @@ export interface RootRouteChildren {
   ApiSummaryMineRoute: typeof ApiSummaryMineRoute
   ApiSummaryMonthlyRoute: typeof ApiSummaryMonthlyRoute
   ApiHolidaysIndexRoute: typeof ApiHolidaysIndexRoute
+  ApiAdminLeaveGrantsAddRoute: typeof ApiAdminLeaveGrantsAddRoute
+  ApiAdminLeaveGrantsListRoute: typeof ApiAdminLeaveGrantsListRoute
+  ApiAdminLeaveGrantsRemoveRoute: typeof ApiAdminLeaveGrantsRemoveRoute
+  ApiAdminLeaveGrantsSyncRoute: typeof ApiAdminLeaveGrantsSyncRoute
+  ApiOrganizationInvitationsBulkRoute: typeof ApiOrganizationInvitationsBulkRoute
+  ApiOrganizationRevokeInvitationBulkRoute: typeof ApiOrganizationRevokeInvitationBulkRoute
+  ApiOrganizationInvitationsIndexRoute: typeof ApiOrganizationInvitationsIndexRoute
+  ApiOrganizationRevokeInvitationIndexRoute: typeof ApiOrganizationRevokeInvitationIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1052,13 +1158,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOrganizationUpdateRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/organization/revoke-invitation': {
-      id: '/api/organization/revoke-invitation'
-      path: '/api/organization/revoke-invitation'
-      fullPath: '/api/organization/revoke-invitation'
-      preLoaderRoute: typeof ApiOrganizationRevokeInvitationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/organization/remove-member': {
       id: '/api/organization/remove-member'
       path: '/api/organization/remove-member'
@@ -1071,13 +1170,6 @@ declare module '@tanstack/react-router' {
       path: '/api/organization/members'
       fullPath: '/api/organization/members'
       preLoaderRoute: typeof ApiOrganizationMembersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/organization/invitations': {
-      id: '/api/organization/invitations'
-      path: '/api/organization/invitations'
-      fullPath: '/api/organization/invitations'
-      preLoaderRoute: typeof ApiOrganizationInvitationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/organization/change-role': {
@@ -1169,6 +1261,13 @@ declare module '@tanstack/react-router' {
       path: '/api/holidays/create'
       fullPath: '/api/holidays/create'
       preLoaderRoute: typeof ApiHolidaysCreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/holidays/bulk': {
+      id: '/api/holidays/bulk'
+      path: '/api/holidays/bulk'
+      fullPath: '/api/holidays/bulk'
+      preLoaderRoute: typeof ApiHolidaysBulkRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/correction-requests/reject': {
@@ -1346,6 +1445,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof appAuthedAdminRouteRouteImport
       parentRoute: typeof appAuthedRouteRoute
     }
+    '/api/organization/revoke-invitation/': {
+      id: '/api/organization/revoke-invitation/'
+      path: '/api/organization/revoke-invitation'
+      fullPath: '/api/organization/revoke-invitation/'
+      preLoaderRoute: typeof ApiOrganizationRevokeInvitationIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/organization/invitations/': {
+      id: '/api/organization/invitations/'
+      path: '/api/organization/invitations'
+      fullPath: '/api/organization/invitations/'
+      preLoaderRoute: typeof ApiOrganizationInvitationsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/(app)/_authed/requests/': {
       id: '/(app)/_authed/requests/'
       path: '/requests'
@@ -1366,6 +1479,48 @@ declare module '@tanstack/react-router' {
       fullPath: '/attendance/'
       preLoaderRoute: typeof appAuthedAttendanceIndexRouteImport
       parentRoute: typeof appAuthedRouteRoute
+    }
+    '/api/organization/revoke-invitation/bulk': {
+      id: '/api/organization/revoke-invitation/bulk'
+      path: '/api/organization/revoke-invitation/bulk'
+      fullPath: '/api/organization/revoke-invitation/bulk'
+      preLoaderRoute: typeof ApiOrganizationRevokeInvitationBulkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/organization/invitations/bulk': {
+      id: '/api/organization/invitations/bulk'
+      path: '/api/organization/invitations/bulk'
+      fullPath: '/api/organization/invitations/bulk'
+      preLoaderRoute: typeof ApiOrganizationInvitationsBulkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/leave-grants/sync': {
+      id: '/api/admin/leave-grants/sync'
+      path: '/api/admin/leave-grants/sync'
+      fullPath: '/api/admin/leave-grants/sync'
+      preLoaderRoute: typeof ApiAdminLeaveGrantsSyncRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/leave-grants/remove': {
+      id: '/api/admin/leave-grants/remove'
+      path: '/api/admin/leave-grants/remove'
+      fullPath: '/api/admin/leave-grants/remove'
+      preLoaderRoute: typeof ApiAdminLeaveGrantsRemoveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/leave-grants/list': {
+      id: '/api/admin/leave-grants/list'
+      path: '/api/admin/leave-grants/list'
+      fullPath: '/api/admin/leave-grants/list'
+      preLoaderRoute: typeof ApiAdminLeaveGrantsListRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/leave-grants/add': {
+      id: '/api/admin/leave-grants/add'
+      path: '/api/admin/leave-grants/add'
+      fullPath: '/api/admin/leave-grants/add'
+      preLoaderRoute: typeof ApiAdminLeaveGrantsAddRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/(app)/_authed/requests/new': {
       id: '/(app)/_authed/requests/new'
@@ -1400,6 +1555,13 @@ declare module '@tanstack/react-router' {
       path: '/summary'
       fullPath: '/admin/summary'
       preLoaderRoute: typeof appAuthedAdminSummaryRouteImport
+      parentRoute: typeof appAuthedAdminRouteRoute
+    }
+    '/(app)/_authed/admin/setup': {
+      id: '/(app)/_authed/admin/setup'
+      path: '/setup'
+      fullPath: '/admin/setup'
+      preLoaderRoute: typeof appAuthedAdminSetupRouteImport
       parentRoute: typeof appAuthedAdminRouteRoute
     }
     '/(app)/_authed/admin/requests': {
@@ -1490,6 +1652,7 @@ interface appAuthedAdminRouteRouteChildren {
   appAuthedAdminSettingsRouteRoute: typeof appAuthedAdminSettingsRouteRouteWithChildren
   appAuthedAdminLeavesRoute: typeof appAuthedAdminLeavesRoute
   appAuthedAdminRequestsRoute: typeof appAuthedAdminRequestsRoute
+  appAuthedAdminSetupRoute: typeof appAuthedAdminSetupRoute
   appAuthedAdminSummaryRoute: typeof appAuthedAdminSummaryRoute
   appAuthedAdminTodayRoute: typeof appAuthedAdminTodayRoute
   appAuthedAdminMembersIndexRoute: typeof appAuthedAdminMembersIndexRoute
@@ -1502,6 +1665,7 @@ const appAuthedAdminRouteRouteChildren: appAuthedAdminRouteRouteChildren = {
     appAuthedAdminSettingsRouteRouteWithChildren,
   appAuthedAdminLeavesRoute: appAuthedAdminLeavesRoute,
   appAuthedAdminRequestsRoute: appAuthedAdminRequestsRoute,
+  appAuthedAdminSetupRoute: appAuthedAdminSetupRoute,
   appAuthedAdminSummaryRoute: appAuthedAdminSummaryRoute,
   appAuthedAdminTodayRoute: appAuthedAdminTodayRoute,
   appAuthedAdminMembersIndexRoute: appAuthedAdminMembersIndexRoute,
@@ -1581,6 +1745,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCorrectionRequestsListMineRoute: ApiCorrectionRequestsListMineRoute,
   ApiCorrectionRequestsListOrgRoute: ApiCorrectionRequestsListOrgRoute,
   ApiCorrectionRequestsRejectRoute: ApiCorrectionRequestsRejectRoute,
+  ApiHolidaysBulkRoute: ApiHolidaysBulkRoute,
   ApiHolidaysCreateRoute: ApiHolidaysCreateRoute,
   ApiHolidaysDeleteRoute: ApiHolidaysDeleteRoute,
   ApiLeaveRequestsApproveRoute: ApiLeaveRequestsApproveRoute,
@@ -1592,10 +1757,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiLeaveRequestsRejectRoute: ApiLeaveRequestsRejectRoute,
   ApiOrganizationAcceptInvitationRoute: ApiOrganizationAcceptInvitationRoute,
   ApiOrganizationChangeRoleRoute: ApiOrganizationChangeRoleRoute,
-  ApiOrganizationInvitationsRoute: ApiOrganizationInvitationsRoute,
   ApiOrganizationMembersRoute: ApiOrganizationMembersRoute,
   ApiOrganizationRemoveMemberRoute: ApiOrganizationRemoveMemberRoute,
-  ApiOrganizationRevokeInvitationRoute: ApiOrganizationRevokeInvitationRoute,
   ApiOrganizationUpdateRoute: ApiOrganizationUpdateRoute,
   ApiOrganizationUpdateMemberWorkProfileRoute:
     ApiOrganizationUpdateMemberWorkProfileRoute,
@@ -1604,6 +1767,16 @@ const rootRouteChildren: RootRouteChildren = {
   ApiSummaryMineRoute: ApiSummaryMineRoute,
   ApiSummaryMonthlyRoute: ApiSummaryMonthlyRoute,
   ApiHolidaysIndexRoute: ApiHolidaysIndexRoute,
+  ApiAdminLeaveGrantsAddRoute: ApiAdminLeaveGrantsAddRoute,
+  ApiAdminLeaveGrantsListRoute: ApiAdminLeaveGrantsListRoute,
+  ApiAdminLeaveGrantsRemoveRoute: ApiAdminLeaveGrantsRemoveRoute,
+  ApiAdminLeaveGrantsSyncRoute: ApiAdminLeaveGrantsSyncRoute,
+  ApiOrganizationInvitationsBulkRoute: ApiOrganizationInvitationsBulkRoute,
+  ApiOrganizationRevokeInvitationBulkRoute:
+    ApiOrganizationRevokeInvitationBulkRoute,
+  ApiOrganizationInvitationsIndexRoute: ApiOrganizationInvitationsIndexRoute,
+  ApiOrganizationRevokeInvitationIndexRoute:
+    ApiOrganizationRevokeInvitationIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

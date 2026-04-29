@@ -40,6 +40,30 @@ export const ReviewLeaveRequestInputSchema = z.object({
   comment: z.string().max(1000).optional(),
 })
 
+// 手動付与: admin が初期設定や繰越を直接登録する
+export const AddLeaveGrantInputSchema = z.object({
+  userId: z.string().min(1),
+  grantDate: WorkDate,
+  // 0.5 単位、上限は実用範囲で 99
+  grantedDays: z.number().min(0).max(99),
+  note: z.string().max(500).optional(),
+})
+
+export const RemoveLeaveGrantInputSchema = z.object({
+  grantId: z.string().uuid(),
+})
+
+// 任意のタイミングで「雇入日 + 表参照」から不足分を auto 付与として補完
+export const SyncAutoLeaveGrantsInputSchema = z.object({
+  // 省略時は全メンバー対象
+  userId: z.string().min(1).optional(),
+})
+
 export type CreateLeaveRequestInput = z.infer<typeof CreateLeaveRequestInputSchema>
 export type CancelLeaveRequestInput = z.infer<typeof CancelLeaveRequestInputSchema>
 export type ReviewLeaveRequestInput = z.infer<typeof ReviewLeaveRequestInputSchema>
+export type AddLeaveGrantInput = z.infer<typeof AddLeaveGrantInputSchema>
+export type RemoveLeaveGrantInput = z.infer<typeof RemoveLeaveGrantInputSchema>
+export type SyncAutoLeaveGrantsInput = z.infer<
+  typeof SyncAutoLeaveGrantsInputSchema
+>

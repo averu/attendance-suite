@@ -1,6 +1,7 @@
 import { and, desc, eq, inArray } from 'drizzle-orm'
 import { db } from '@/shared/lib/db.server'
 import {
+  leaveGrants,
   leaveRequestReviews,
   leaveRequests,
   memberships,
@@ -9,9 +10,12 @@ import {
 import type { ApiCallerContext } from '@/shared/server/apiAuth'
 import type { LeaveRequestDTO, LeaveStatus, LeaveType } from '../types'
 import type {
+  AddLeaveGrantInput,
   CancelLeaveRequestInput,
   CreateLeaveRequestInput,
+  RemoveLeaveGrantInput,
   ReviewLeaveRequestInput,
+  SyncAutoLeaveGrantsInput,
 } from '../schemas'
 import {
   checkAnnualPaidLeaveObligation,
@@ -21,6 +25,7 @@ import {
 import type {
   AnnualObligationFinding,
   GrantBalanceSlice,
+  LeaveGrant,
   LeaveUsage,
 } from '@/features/labor'
 
@@ -212,14 +217,50 @@ export async function getOrgPaidLeaveObligationsHandler(
     usagesByUser.set(r.requesterUserId, arr)
   }
 
+  // 設定済メンバーは ensureAutoGrants で auto 付与を補完してから一括読み出し
+  for (const row of memberRows) {
+    const m = row.m
+    if (
+      m.hireDate &&
+      m.weeklyScheduledDays != null &&
+      m.weeklyScheduledHours != null
+    ) {
+      await ensureAutoGrants(
+        ctx,
+        m.userId,
+        m.hireDate,
+        m.weeklyScheduledDays,
+        Number(m.weeklyScheduledHours),
+        asOfDate,
+      )
+    }
+  }
+  const grantRows = await db
+    .select()
+    .from(leaveGrants)
+    .where(
+      and(
+        eq(leaveGrants.organizationId, ctx.organization.id),
+        inArray(leaveGrants.userId, userIds),
+      ),
+    )
+  const grantsByUser = new Map<string, LeaveGrant[]>()
+  for (const g of grantRows) {
+    const arr = grantsByUser.get(g.userId) ?? []
+    arr.push(rowToLaborGrant(g))
+    grantsByUser.set(g.userId, arr)
+  }
+
   return memberRows.map((row) => {
     const m = row.m
     const u = row.u
-    if (
-      !m.hireDate ||
-      m.weeklyScheduledDays == null ||
-      m.weeklyScheduledHours == null
-    ) {
+    const grants = grantsByUser.get(u.id) ?? []
+    const isUnconfigured =
+      (!m.hireDate ||
+        m.weeklyScheduledDays == null ||
+        m.weeklyScheduledHours == null) &&
+      grants.length === 0
+    if (isUnconfigured) {
       return {
         userId: u.id,
         userName: u.name,
@@ -230,14 +271,6 @@ export async function getOrgPaidLeaveObligationsHandler(
         pendingCount: 0,
       }
     }
-    const grants = computePaidLeaveGrants(
-      {
-        hireDate: m.hireDate,
-        weeklyScheduledDays: m.weeklyScheduledDays,
-        weeklyScheduledHours: Number(m.weeklyScheduledHours),
-      },
-      asOfDate,
-    )
     const usages = usagesByUser.get(u.id) ?? []
     const obligations = checkAnnualPaidLeaveObligation(grants, usages, asOfDate)
     return {
@@ -250,6 +283,211 @@ export async function getOrgPaidLeaveObligationsHandler(
       pendingCount: obligations.filter((o) => o.status === 'pending').length,
     }
   })
+}
+
+// 雇入日から auto 付与日列を生成し、leave_grants に未登録の分だけ INSERT する。
+// admin の手動付与 (source='manual') は触らない。重複は uniqueIndex で防止 + ここでも skip。
+async function ensureAutoGrants(
+  ctx: ApiCallerContext,
+  userId: string,
+  hireDate: string,
+  weeklyDays: number,
+  weeklyHours: number,
+  asOfDate: string,
+): Promise<void> {
+  const computed = computePaidLeaveGrants(
+    {
+      hireDate,
+      weeklyScheduledDays: weeklyDays,
+      weeklyScheduledHours: weeklyHours,
+    },
+    asOfDate,
+  )
+  if (computed.length === 0) return
+  const existing = await db
+    .select({ grantDate: leaveGrants.grantDate })
+    .from(leaveGrants)
+    .where(
+      and(
+        eq(leaveGrants.organizationId, ctx.organization.id),
+        eq(leaveGrants.userId, userId),
+      ),
+    )
+  const existingDates = new Set(existing.map((e) => e.grantDate))
+  const toInsert = computed.filter(
+    (c) => !existingDates.has(c.grantDate) && c.grantedDays > 0,
+  )
+  if (toInsert.length === 0) return
+  await db.insert(leaveGrants).values(
+    toInsert.map((g) => ({
+      organizationId: ctx.organization.id,
+      userId,
+      grantDate: g.grantDate,
+      grantedDays: String(g.grantedDays),
+      source: 'auto' as const,
+      note: null,
+      // auto 生成は誰の操作でもないので createdBy=null
+      createdByUserId: null,
+    })),
+  )
+}
+
+// DB の leave_grants 1 行を labor の LeaveGrant 型に変換 (yearsOfService は表示専用)
+function rowToLaborGrant(row: typeof leaveGrants.$inferSelect): LeaveGrant {
+  return {
+    grantDate: row.grantDate,
+    yearsOfService: 0,
+    grantedDays: Number(row.grantedDays),
+    withheldFor80PctRule: false,
+  }
+}
+
+export type AdminLeaveGrantDTO = {
+  id: string
+  userId: string
+  grantDate: string
+  grantedDays: number
+  source: 'auto' | 'manual'
+  note: string | null
+  createdAt: string
+}
+
+export async function listMemberLeaveGrantsHandler(
+  ctx: ApiCallerContext,
+  userId: string,
+): Promise<AdminLeaveGrantDTO[]> {
+  const rows = await db
+    .select()
+    .from(leaveGrants)
+    .where(
+      and(
+        eq(leaveGrants.organizationId, ctx.organization.id),
+        eq(leaveGrants.userId, userId),
+      ),
+    )
+    .orderBy(leaveGrants.grantDate)
+  return rows.map((r) => ({
+    id: r.id,
+    userId: r.userId,
+    grantDate: r.grantDate,
+    grantedDays: Number(r.grantedDays),
+    source: r.source,
+    note: r.note,
+    createdAt: r.createdAt.toISOString(),
+  }))
+}
+
+export async function addLeaveGrantHandler(
+  ctx: ApiCallerContext,
+  input: AddLeaveGrantInput,
+): Promise<{ id: string }> {
+  // 同 org の membership があるか確認 (他組織のユーザーには付与できない)
+  const [m] = await db
+    .select()
+    .from(memberships)
+    .where(
+      and(
+        eq(memberships.organizationId, ctx.organization.id),
+        eq(memberships.userId, input.userId),
+      ),
+    )
+    .limit(1)
+  if (!m) throw err('NOT_FOUND')
+  try {
+    const [row] = await db
+      .insert(leaveGrants)
+      .values({
+        organizationId: ctx.organization.id,
+        userId: input.userId,
+        grantDate: input.grantDate,
+        grantedDays: String(input.grantedDays),
+        source: 'manual',
+        note: input.note ?? null,
+        createdByUserId: ctx.user.id,
+      })
+      .returning()
+    if (!row) throw err('INSERT_FAILED')
+    return { id: row.id }
+  } catch (e) {
+    // unique violation: 同じ grantDate が既にある
+    const msg = (e as { message?: string }).message ?? ''
+    if (msg.includes('leave_grant_user_date_uniq')) {
+      throw err('GRANT_DATE_DUPLICATE')
+    }
+    throw e
+  }
+}
+
+export async function removeLeaveGrantHandler(
+  ctx: ApiCallerContext,
+  input: RemoveLeaveGrantInput,
+): Promise<{ ok: true }> {
+  const [row] = await db
+    .select()
+    .from(leaveGrants)
+    .where(eq(leaveGrants.id, input.grantId))
+    .limit(1)
+  if (!row || row.organizationId !== ctx.organization.id) throw err('NOT_FOUND')
+  await db.delete(leaveGrants).where(eq(leaveGrants.id, input.grantId))
+  return { ok: true }
+}
+
+// 任意のタイミングで auto 付与を補完する (UI の "自動同期" ボタン用)。
+// userId 指定なら 1 名、省略なら org 全員。
+export async function syncAutoLeaveGrantsHandler(
+  ctx: ApiCallerContext,
+  input: SyncAutoLeaveGrantsInput,
+  asOfDate: string,
+): Promise<{ syncedCount: number }> {
+  const memberRows = await db
+    .select()
+    .from(memberships)
+    .where(
+      input.userId
+        ? and(
+            eq(memberships.organizationId, ctx.organization.id),
+            eq(memberships.userId, input.userId),
+          )
+        : eq(memberships.organizationId, ctx.organization.id),
+    )
+  let syncedCount = 0
+  for (const m of memberRows) {
+    if (
+      !m.hireDate ||
+      m.weeklyScheduledDays == null ||
+      m.weeklyScheduledHours == null
+    ) {
+      continue
+    }
+    const before = await db
+      .select({ id: leaveGrants.id })
+      .from(leaveGrants)
+      .where(
+        and(
+          eq(leaveGrants.organizationId, ctx.organization.id),
+          eq(leaveGrants.userId, m.userId),
+        ),
+      )
+    await ensureAutoGrants(
+      ctx,
+      m.userId,
+      m.hireDate,
+      m.weeklyScheduledDays,
+      Number(m.weeklyScheduledHours),
+      asOfDate,
+    )
+    const after = await db
+      .select({ id: leaveGrants.id })
+      .from(leaveGrants)
+      .where(
+        and(
+          eq(leaveGrants.organizationId, ctx.organization.id),
+          eq(leaveGrants.userId, m.userId),
+        ),
+      )
+    syncedCount += after.length - before.length
+  }
+  return { syncedCount }
 }
 
 export type PaidLeaveBalanceResponse =
@@ -270,8 +508,9 @@ export type PaidLeaveBalanceResponse =
 
 /**
  * 自分の有給残高を返す。
- * - membership に hireDate / weeklyScheduledDays / weeklyScheduledHours が未設定なら UNCONFIGURED
- * - 付与は computePaidLeaveGrants で都度算出 (出勤率は将来 attendance から導出。現状は 100% 仮定)
+ * - hireDate/weekly が設定済なら、leave_grants に未登録の auto 付与を補完してから読む (lazy sync)
+ * - 設定が未済でも leave_grants に手動付与があればそれだけで残高を返す (admin 初期設定対応)
+ * - hire/weekly すべて未設定 + leave_grants も空 → UNCONFIGURED
  * - 取得は status='approved' の paid_full / paid_half_am / paid_half_pm を集計
  *   - paid_full: startDate-endDate を 1 日刻みで展開 (各 1.0)
  *   - paid_half_*: 単日扱い (0.5)
@@ -285,23 +524,47 @@ export async function getMyPaidLeaveBalanceHandler(
     .from(memberships)
     .where(eq(memberships.id, ctx.membership.id))
     .limit(1)
+  if (!m) return { status: 'UNCONFIGURED' }
+
+  // hire/weekly 設定済なら不足分の auto 付与を補完
+  const isConfigured =
+    !!m.hireDate &&
+    m.weeklyScheduledDays != null &&
+    m.weeklyScheduledHours != null
   if (
-    !m ||
-    !m.hireDate ||
-    m.weeklyScheduledDays == null ||
-    m.weeklyScheduledHours == null
+    isConfigured &&
+    m.hireDate &&
+    m.weeklyScheduledDays != null &&
+    m.weeklyScheduledHours != null
   ) {
+    await ensureAutoGrants(
+      ctx,
+      ctx.user.id,
+      m.hireDate,
+      m.weeklyScheduledDays,
+      Number(m.weeklyScheduledHours),
+      asOfDate,
+    )
+  }
+
+  // DB から付与履歴を取得
+  const grantRows = await db
+    .select()
+    .from(leaveGrants)
+    .where(
+      and(
+        eq(leaveGrants.organizationId, ctx.organization.id),
+        eq(leaveGrants.userId, ctx.user.id),
+      ),
+    )
+    .orderBy(leaveGrants.grantDate)
+
+  // 設定未済かつ手動付与もない → UNCONFIGURED
+  if (!isConfigured && grantRows.length === 0) {
     return { status: 'UNCONFIGURED' }
   }
 
-  const grants = computePaidLeaveGrants(
-    {
-      hireDate: m.hireDate,
-      weeklyScheduledDays: m.weeklyScheduledDays,
-      weeklyScheduledHours: Number(m.weeklyScheduledHours),
-    },
-    asOfDate,
-  )
+  const grants = grantRows.map(rowToLaborGrant)
 
   // 承認済 paid_* の usage を組み立てる
   const approved = await db
@@ -320,7 +583,6 @@ export async function getMyPaidLeaveBalanceHandler(
     if (r.leaveType === 'paid_half_am' || r.leaveType === 'paid_half_pm') {
       usages.push({ date: r.startDate, days: 0.5 })
     } else if (r.leaveType === 'paid_full') {
-      // startDate ~ endDate を 1 日刻みに展開
       let cur = r.startDate
       while (cur.localeCompare(r.endDate) <= 0) {
         usages.push({ date: cur, days: 1 })
@@ -334,9 +596,10 @@ export async function getMyPaidLeaveBalanceHandler(
   return {
     status: 'OK',
     asOfDate,
-    hireDate: m.hireDate,
-    weeklyScheduledDays: m.weeklyScheduledDays,
-    weeklyScheduledHours: Number(m.weeklyScheduledHours),
+    hireDate: m.hireDate ?? '(未設定)',
+    weeklyScheduledDays: m.weeklyScheduledDays ?? 0,
+    weeklyScheduledHours:
+      m.weeklyScheduledHours == null ? 0 : Number(m.weeklyScheduledHours),
     grants: balance.grants,
     totalGrantedActiveDays: balance.totalGrantedActiveDays,
     totalUsedDays: balance.totalUsedDays,

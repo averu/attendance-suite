@@ -3,7 +3,11 @@ import { db } from '@/shared/lib/db.server'
 import { holidays } from '@/db/schema'
 import type { ApiCallerContext } from '@/shared/server/apiAuth'
 import type { HolidayDTO } from '../types'
-import type { CreateHolidayInput, DeleteHolidayInput } from '../schemas'
+import type {
+  BulkCreateHolidaysInput,
+  CreateHolidayInput,
+  DeleteHolidayInput,
+} from '../schemas'
 
 function err(code: string): Error {
   const e = new Error(code)
@@ -56,6 +60,37 @@ export async function createHolidayHandler(
     if (msg.includes('unique') || msg.includes('duplicate')) throw err('CONFLICT')
     throw e
   }
+}
+
+/**
+ * 一括登録: 既存 (org × date) と衝突する分は skip して、追加された件数を返す。
+ * 既存の name は上書きしない (admin が変更したかもしれないので保護)。
+ */
+export async function bulkCreateHolidaysHandler(
+  ctx: ApiCallerContext,
+  input: BulkCreateHolidaysInput,
+): Promise<{ insertedCount: number; skippedCount: number }> {
+  if (input.items.length === 0) {
+    return { insertedCount: 0, skippedCount: 0 }
+  }
+  const existing = await db
+    .select({ date: holidays.date })
+    .from(holidays)
+    .where(eq(holidays.organizationId, ctx.organization.id))
+  const existingDates = new Set(existing.map((e) => e.date))
+  const toInsert = input.items.filter((it) => !existingDates.has(it.date))
+  const skippedCount = input.items.length - toInsert.length
+  if (toInsert.length === 0) {
+    return { insertedCount: 0, skippedCount }
+  }
+  await db.insert(holidays).values(
+    toInsert.map((it) => ({
+      organizationId: ctx.organization.id,
+      date: it.date,
+      name: it.name,
+    })),
+  )
+  return { insertedCount: toInsert.length, skippedCount }
 }
 
 export async function deleteHolidayHandler(

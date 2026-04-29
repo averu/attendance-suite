@@ -6,7 +6,7 @@ import {
 } from '@/features/organization/server/handlers.server'
 import { InviteInputSchema } from '@/features/organization/schemas'
 
-export const Route = createFileRoute('/api/organization/invitations')({
+export const Route = createFileRoute('/api/organization/invitations/')({
   server: {
     handlers: {
       // 招待は owner だけが発行できる仕様なので、一覧も owner に揃える
