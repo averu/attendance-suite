@@ -1,0 +1,1 @@
+ALTER TABLE "membership" ADD COLUMN "discretionary_deemed_minutes" integer;

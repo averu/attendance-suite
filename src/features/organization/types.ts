@@ -29,6 +29,8 @@ export type Member = {
   weeklyScheduledHours: number | null
   /** 労基法上の区分。'manager' は管理監督者 (時間外/休日割増の対象外) */
   laborCategory: LaborCategory
+  /** 裁量労働制の「みなし労働時間 (分)」。null の場合は実労働ベース */
+  discretionaryDeemedMinutes: number | null
 }
 
 export type Invitation = {

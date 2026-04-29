@@ -78,6 +78,13 @@
       "when": 1777454768333,
       "tag": "0010_lonely_dexter_bennett",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1777461287079,
+      "tag": "0011_thick_prima",
+      "breakpoints": true
     }
   ]
 }

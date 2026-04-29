@@ -47,6 +47,7 @@ export async function listMembersHandler(ctx: ApiCallerContext): Promise<Member[
     weeklyScheduledHours:
       r.m.weeklyScheduledHours == null ? null : Number(r.m.weeklyScheduledHours),
     laborCategory: r.m.laborCategory,
+    discretionaryDeemedMinutes: r.m.discretionaryDeemedMinutes ?? null,
   }))
 }
 
@@ -415,6 +416,7 @@ export async function updateMemberWorkProfileHandler(
           ? null
           : String(input.weeklyScheduledHours),
       laborCategory: input.laborCategory,
+      discretionaryDeemedMinutes: input.discretionaryDeemedMinutes ?? null,
       updatedAt: new Date(),
     })
     .where(eq(memberships.id, input.membershipId))

@@ -35,6 +35,8 @@ type Row = {
   weeklyScheduledDays: string
   weeklyScheduledHours: string
   laborCategory: LaborCategoryStr
+  /** 既存の deemed を保持して保存時にそのまま渡す (bulk editor では編集不可) */
+  discretionaryDeemedMinutes: number | null
 }
 
 function memberToRow(m: Member): Row {
@@ -46,6 +48,7 @@ function memberToRow(m: Member): Row {
     weeklyScheduledHours:
       m.weeklyScheduledHours == null ? '' : String(m.weeklyScheduledHours),
     laborCategory: m.laborCategory,
+    discretionaryDeemedMinutes: m.discretionaryDeemedMinutes,
   }
 }
 
@@ -66,6 +69,7 @@ function parseRow(r: Row): {
     weeklyScheduledDays: number | null
     weeklyScheduledHours: number | null
     laborCategory: LaborCategoryStr
+    discretionaryDeemedMinutes: number | null
   }
 } | { ok: false; error: string } {
   const hireDate = r.hireDate === '' ? null : r.hireDate
@@ -89,6 +93,8 @@ function parseRow(r: Row): {
       weeklyScheduledDays: days === null ? null : Math.floor(days),
       weeklyScheduledHours: hours,
       laborCategory: r.laborCategory,
+      // bulk editor では deemed を編集できないので既存値をそのまま保持
+      discretionaryDeemedMinutes: r.discretionaryDeemedMinutes,
     },
   }
 }

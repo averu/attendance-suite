@@ -7,6 +7,7 @@ const stubProfile = {
   weeklyScheduledDays: null,
   weeklyScheduledHours: null,
   laborCategory: 'general' as const,
+  discretionaryDeemedMinutes: null,
 }
 
 const members: Member[] = [

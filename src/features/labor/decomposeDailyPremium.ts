@@ -96,6 +96,10 @@ export function decomposeDailyPremium(
   isLegalHoliday: boolean,
   carryInMonthlyLegalOTMinutes: number = 0,
   laborCategory: LaborCategory = 'general',
+  // 裁量労働制 (laborCategory='discretionary') のみなし労働時間 (分)。
+  // null/undefined: みなし時間なし → 実労働ベースで算出 (general と同じ)
+  // 設定あり: OT は (deemed - 480) の固定値、深夜・法定休日は実労働ベース
+  discretionaryDeemedMinutes: number | null | undefined = null,
 ): {
   decomposition: DailyPremiumDecomposition
   dailyLegalOvertimeMinutes: number
@@ -222,6 +226,49 @@ export function decomposeDailyPremium(
     legalHolidayDaytimeMinutes: Math.round(ms.legalHolidayDaytime / MS_PER_MIN),
     legalHolidayNightMinutes: Math.round(ms.legalHolidayNight / MS_PER_MIN),
   }
+
+  // 裁量労働制 (discretionary) でみなし時間が設定されている場合の再分配:
+  //   - 合計分は deemed に揃える (実労働は無視)
+  //   - 法定休日労働は実態 (35%) のまま分岐、deemed 適用なし
+  //   - 深夜帯は **実態の深夜分** を保持し、within night バケットに入れる
+  //   - 8h 内 = withinTotal = min(deemed, 480)、その内訳を night 優先で分配
+  //   - 8h 超 (= deemed - 480) は legalOT 昼間バケットに入れる (OT-night の重複は簡略化のため 0)
+  //   - 60h 月次累積で under60/over60 を split
+  //   - 出勤実績 0 / 法定休日には適用しない (みなし制は通常の労働日のみ)
+  const deemed = discretionaryDeemedMinutes ?? 0
+  const actualNightTotal =
+    decomposition.withinLegalNightMinutes +
+    decomposition.legalOvertimeUnder60NightMinutes +
+    decomposition.legalOvertimeOver60NightMinutes
+  const actualDaytimeTotal =
+    decomposition.withinLegalDaytimeMinutes +
+    decomposition.legalOvertimeUnder60DaytimeMinutes +
+    decomposition.legalOvertimeOver60DaytimeMinutes
+  const hasActualWork = actualNightTotal + actualDaytimeTotal > 0
+  if (
+    laborCategory === 'discretionary' &&
+    deemed > 0 &&
+    !isLegalHoliday &&
+    hasActualWork
+  ) {
+    const dailyOT = Math.max(0, deemed - LEGAL_DAILY_LIMIT_MINUTES)
+    const withinTotal = Math.min(deemed, LEGAL_DAILY_LIMIT_MINUTES)
+    const withinNight = Math.min(actualNightTotal, withinTotal)
+    const withinDaytime = withinTotal - withinNight
+    const carryInOT = Math.max(0, carryInMonthlyLegalOTMinutes)
+    const monthly60Minutes = MONTHLY_60H_MS / MS_PER_MIN
+    const remainingTo60 = Math.max(0, monthly60Minutes - carryInOT)
+    const under60 = Math.min(dailyOT, remainingTo60)
+    const over60 = dailyOT - under60
+    decomposition.withinLegalDaytimeMinutes = withinDaytime
+    decomposition.withinLegalNightMinutes = withinNight
+    decomposition.legalOvertimeUnder60DaytimeMinutes = under60
+    decomposition.legalOvertimeUnder60NightMinutes = 0
+    decomposition.legalOvertimeOver60DaytimeMinutes = over60
+    decomposition.legalOvertimeOver60NightMinutes = 0
+    return { decomposition, dailyLegalOvertimeMinutes: dailyOT }
+  }
+
   const dailyLegalOvertimeMinutes =
     decomposition.legalOvertimeUnder60DaytimeMinutes +
     decomposition.legalOvertimeUnder60NightMinutes +

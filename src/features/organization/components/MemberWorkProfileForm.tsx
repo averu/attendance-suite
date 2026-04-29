@@ -22,8 +22,20 @@ import {
   SelectValue,
 } from '@/shared/ui/select'
 
+function minutesToHHMM(m: number): string {
+  const h = Math.floor(m / 60)
+  const min = m % 60
+  return `${h}:${String(min).padStart(2, '0')}`
+}
+
+function hhmmToMinutes(s: string): number | null {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(s)
+  if (!m) return null
+  return Number(m[1]) * 60 + Number(m[2])
+}
+
 /**
- * 管理者がメンバーの労務情報 (雇入日・週所定日数・週所定時間) を編集する Card。
+ * 管理者がメンバーの労務情報 (雇入日・週所定日数・週所定時間 + 労基法区分・みなし時間) を編集する Card。
  * 値を空にすると null (未設定) として保存される。
  */
 export function MemberWorkProfileForm({ member }: { member: Member }) {
@@ -42,6 +54,12 @@ export function MemberWorkProfileForm({ member }: { member: Member }) {
   const [laborCategory, setLaborCategory] = useState<LaborCategory>(
     member.laborCategory,
   )
+  // みなし労働時間 (HH:MM 形式)。null の場合は空文字
+  const [deemedHHMM, setDeemedHHMM] = useState(
+    member.discretionaryDeemedMinutes == null
+      ? ''
+      : minutesToHHMM(member.discretionaryDeemedMinutes),
+  )
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -56,6 +74,16 @@ export function MemberWorkProfileForm({ member }: { member: Member }) {
       return
     }
     try {
+      // discretionary 以外は deemed をクリア (UI では非表示にしているが念のため)
+      let deemedMinutes: number | null = null
+      if (laborCategory === 'discretionary' && deemedHHMM !== '') {
+        const m = hhmmToMinutes(deemedHHMM)
+        if (m === null || m < 0 || m > 720) {
+          toast.error('みなし時間は HH:MM 形式 (0:00-12:00) で入力してください')
+          return
+        }
+        deemedMinutes = m
+      }
       await update.mutateAsync({
         membershipId: member.membershipId,
         hireDate: hireDate === '' ? null : hireDate,
@@ -63,6 +91,7 @@ export function MemberWorkProfileForm({ member }: { member: Member }) {
           parsedDays === null ? null : Math.floor(parsedDays),
         weeklyScheduledHours: parsedHours,
         laborCategory,
+        discretionaryDeemedMinutes: deemedMinutes,
       })
       toast.success('労務情報を保存しました')
     } catch (err) {
@@ -145,9 +174,27 @@ export function MemberWorkProfileForm({ member }: { member: Member }) {
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              管理監督者は時間外・休日割増対象外 (深夜のみ適用)。高プロは深夜含めて全免除。裁量労働制は本実装では一般と同じ集計。
+              管理監督者は時間外・休日割増対象外 (深夜のみ適用)。高プロは深夜含めて全免除。裁量労働制はみなし時間ベースで OT 算出。
             </p>
           </div>
+          {laborCategory === 'discretionary' && (
+            <div className="grid gap-2">
+              <Label htmlFor={`deemed-${member.membershipId}`}>
+                みなし労働時間 (HH:MM)
+              </Label>
+              <Input
+                id={`deemed-${member.membershipId}`}
+                placeholder="9:00"
+                value={deemedHHMM}
+                onChange={(e) => setDeemedHHMM(e.target.value)}
+                className="w-32"
+              />
+              <p className="text-xs text-muted-foreground">
+                労使協定で定めたみなし時間 (例: 9:00 = 9 時間)。空なら一般と同じ実態ベース集計。
+                法定 8h を超えた分は月内 60h 累積で under60/over60 に分配される。
+              </p>
+            </div>
+          )}
           <Button type="submit" disabled={update.isPending}>
             {update.isPending && <Loader2 className="animate-spin" />}
             保存

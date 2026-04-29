@@ -63,6 +63,15 @@ export const UpdateMemberWorkProfileInputSchema = z.object({
   weeklyScheduledDays: z.number().int().min(0).max(7).nullable(),
   weeklyScheduledHours: z.number().min(0).max(168).nullable(),
   laborCategory: LaborCategorySchema.optional().default('general'),
+  // 裁量労働制のみなし時間 (分)。null=未設定、0-720 を許容
+  discretionaryDeemedMinutes: z
+    .number()
+    .int()
+    .min(0)
+    .max(720)
+    .nullable()
+    .optional()
+    .default(null),
 })
 
 export type InviteInput = z.infer<typeof InviteInputSchema>

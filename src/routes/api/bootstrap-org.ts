@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
-import { sql } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { db } from '@/shared/lib/db.server'
 import {
   organizations,
@@ -24,7 +24,10 @@ function slugify(s: string): string {
 }
 
 // POST /api/bootstrap-org — 新しい組織を作って自分を owner として加入。
-// signup 直後にも呼ばれるし、追加組織作成 (multi-org) でも呼ばれる。
+// 許可条件:
+//   (a) membership が 0 件 = signup 直後 (新規ユーザの初回作成)
+//   (b) どこかの組織で owner ロールを持っている (multi-org の追加作成)
+// それ以外 (= member/admin としてのみ所属している) は member の権限濫用を防ぐため拒否。
 // 作成後は active organization を新組織に切り替える。
 export const Route = createFileRoute('/api/bootstrap-org')({
   server: {
@@ -40,8 +43,25 @@ export const Route = createFileRoute('/api/bootstrap-org')({
           return Response.json({ error: 'INVALID_INPUT' }, { status: 400 })
         }
 
-        const slug = `${slugify(parsed.data.name)}-${Date.now().toString(36)}`
         const userId = session.user.id
+
+        // 既存 membership を確認: 0 件なら signup として許可、
+        // 1 件以上なら owner ロールがどこかにあるかチェックして許可判定。
+        const existing = await db
+          .select({ role: memberships.role })
+          .from(memberships)
+          .where(eq(memberships.userId, userId))
+        if (existing.length > 0) {
+          const isOwnerSomewhere = existing.some((m) => m.role === 'owner')
+          if (!isOwnerSomewhere) {
+            return Response.json(
+              { error: 'FORBIDDEN_NOT_OWNER' },
+              { status: 403 },
+            )
+          }
+        }
+
+        const slug = `${slugify(parsed.data.name)}-${Date.now().toString(36)}`
         const result = await db.transaction(async (tx) => {
           const [org] = await tx
             .insert(organizations)

@@ -208,7 +208,7 @@ describe('decomposeDailyPremium — 高度プロフェッショナル (highly_sk
 })
 
 describe('decomposeDailyPremium — 裁量労働制 (discretionary)', () => {
-  it('現実装は general と同等の集計 (みなし時間カラム未実装のため)', () => {
+  it('みなし時間未設定なら general と同等', () => {
     const general = decomposeDailyPremium(
       [seg('2026-04-29T00:00:00Z', '2026-04-29T10:00:00Z')],
       false,
@@ -222,6 +222,92 @@ describe('decomposeDailyPremium — 裁量労働制 (discretionary)', () => {
       'discretionary',
     )
     expect(discretionary).toEqual(general)
+  })
+
+  it('みなし 9h・実労働 6h: 帳票上は deemed 9h ベース (within 480 + OT 60)', () => {
+    // 実態 6h でも deemed 9h で集計される (給与上は 9h 払い + 1h OT)
+    const r = decomposeDailyPremium(
+      [seg('2026-04-29T00:00:00Z', '2026-04-29T06:00:00Z')],
+      false,
+      0,
+      'discretionary',
+      9 * 60, // みなし 9h
+    )
+    expect(r.decomposition.withinLegalDaytimeMinutes).toBe(480)
+    expect(r.decomposition.legalOvertimeUnder60DaytimeMinutes).toBe(60)
+    expect(r.decomposition.legalOvertimeUnder60NightMinutes).toBe(0)
+    expect(r.dailyLegalOvertimeMinutes).toBe(60)
+  })
+
+  it('みなし 9h・実労働 12h: OT も deemed-480=60 (実態 480 を超えても deemed 固定)', () => {
+    const r = decomposeDailyPremium(
+      [seg('2026-04-29T00:00:00Z', '2026-04-29T12:00:00Z')],
+      false,
+      0,
+      'discretionary',
+      9 * 60,
+    )
+    expect(r.decomposition.withinLegalDaytimeMinutes).toBe(480)
+    expect(r.decomposition.legalOvertimeUnder60DaytimeMinutes).toBe(60)
+    expect(r.dailyLegalOvertimeMinutes).toBe(60)
+  })
+
+  it('みなし 8h なら OT 0', () => {
+    const r = decomposeDailyPremium(
+      [seg('2026-04-29T00:00:00Z', '2026-04-29T10:00:00Z')], // 実 10h
+      false,
+      0,
+      'discretionary',
+      8 * 60,
+    )
+    expect(r.dailyLegalOvertimeMinutes).toBe(0)
+    expect(r.decomposition.legalOvertimeUnder60DaytimeMinutes).toBe(0)
+  })
+
+  it('みなし 9h・深夜帯含む実労働: 深夜は実態で計上、OT は deemed', () => {
+    // 14-24 JST = 05-15 UTC = 10h、22-24 JST が深夜 2h
+    const r = decomposeDailyPremium(
+      [seg('2026-04-29T05:00:00Z', '2026-04-29T15:00:00Z')],
+      false,
+      0,
+      'discretionary',
+      9 * 60,
+    )
+    // deemed 9h ベースで within=480 を「夜 120 + 昼 360」に配分、OT 60 は昼 OT バケット
+    expect(r.decomposition.withinLegalNightMinutes).toBe(120)
+    expect(r.decomposition.withinLegalDaytimeMinutes).toBe(360)
+    expect(r.decomposition.legalOvertimeUnder60DaytimeMinutes).toBe(60)
+    expect(r.decomposition.legalOvertimeUnder60NightMinutes).toBe(0)
+  })
+
+  it('法定休日にはみなし制を適用しない (実態 35% のみ)', () => {
+    const r = decomposeDailyPremium(
+      [seg('2026-04-29T00:00:00Z', '2026-04-29T08:00:00Z')], // 実 8h
+      true, // 法定休日
+      0,
+      'discretionary',
+      9 * 60,
+    )
+    expect(r.decomposition.legalHolidayDaytimeMinutes).toBe(480)
+    expect(r.dailyLegalOvertimeMinutes).toBe(0)
+  })
+
+  it('実労働ゼロの日にはみなし OT を生成しない (出勤実績がないため)', () => {
+    const r = decomposeDailyPremium([], false, 0, 'discretionary', 9 * 60)
+    expect(r.dailyLegalOvertimeMinutes).toBe(0)
+    expect(Object.values(r.decomposition).every((v) => v === 0)).toBe(true)
+  })
+
+  it('carryIn=60h なら deemed OT は全部 over60 バケットに行く', () => {
+    const r = decomposeDailyPremium(
+      [seg('2026-04-29T00:00:00Z', '2026-04-29T08:00:00Z')], // 実 8h
+      false,
+      60 * 60,
+      'discretionary',
+      9 * 60,
+    )
+    expect(r.decomposition.legalOvertimeUnder60DaytimeMinutes).toBe(0)
+    expect(r.decomposition.legalOvertimeOver60DaytimeMinutes).toBe(60)
   })
 })
 

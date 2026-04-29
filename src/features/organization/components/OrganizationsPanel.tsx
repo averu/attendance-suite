@@ -23,11 +23,20 @@ const LEAVE_ERROR_LABEL: Record<string, string> = {
   NOT_MEMBER: 'この組織のメンバーではありません',
 }
 
+const CREATE_ERROR_LABEL: Record<string, string> = {
+  FORBIDDEN_NOT_OWNER:
+    '組織を作成できるのはオーナーのみです。所属組織のオーナーに依頼してください。',
+}
+
 export function OrganizationsPanel() {
   const session = useSession()
   const navigate = useNavigate()
   const orgs = session.data.availableOrganizations ?? []
   const activeOrgId = session.data.organization?.id
+  // 組織作成は「どこかで owner」ロールを持つ場合のみ許可。
+  // 既に member/admin としてのみ所属しているユーザは新組織を作れない (server も同じ判定)。
+  const canCreateOrganization =
+    orgs.length === 0 || orgs.some((o) => o.role === 'owner')
 
   const create = useCreateOrganization()
   const leave = useLeaveOrganization()
@@ -45,7 +54,8 @@ export function OrganizationsPanel() {
       // active organization が新組織に切り替わったので reload
       await navigate({ to: '/dashboard', reloadDocument: true })
     } catch (e) {
-      setCreateError((e as Error).message)
+      const code = (e as Error).message
+      setCreateError(CREATE_ERROR_LABEL[code] ?? code)
     }
   }
 
@@ -105,41 +115,52 @@ export function OrganizationsPanel() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>新しい組織を作る</CardTitle>
-          <CardDescription>
-            自分が owner として新しい組織を作成。作成後はそれがアクティブ組織になります。
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={onCreate} className="grid gap-4 max-w-md">
-            <div className="grid gap-2">
-              <Label htmlFor="new-org-name">組織名</Label>
-              <Input
-                id="new-org-name"
-                required
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                placeholder="例: 副業 LLC"
-              />
-            </div>
-            {createError && (
-              <Alert variant="destructive">
-                <AlertDescription>{createError}</AlertDescription>
-              </Alert>
-            )}
-            <Button type="submit" disabled={create.isPending}>
-              {create.isPending ? (
-                <Loader2 className="animate-spin" />
-              ) : (
-                <Plus />
+      {canCreateOrganization ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>新しい組織を作る</CardTitle>
+            <CardDescription>
+              自分が owner として新しい組織を作成。作成後はそれがアクティブ組織になります。
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={onCreate} className="grid gap-4 max-w-md">
+              <div className="grid gap-2">
+                <Label htmlFor="new-org-name">組織名</Label>
+                <Input
+                  id="new-org-name"
+                  required
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  placeholder="例: 副業 LLC"
+                />
+              </div>
+              {createError && (
+                <Alert variant="destructive">
+                  <AlertDescription>{createError}</AlertDescription>
+                </Alert>
               )}
-              作成
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+              <Button type="submit" disabled={create.isPending}>
+                {create.isPending ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  <Plus />
+                )}
+                作成
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>新しい組織を作る</CardTitle>
+            <CardDescription>
+              この機能は組織オーナーのみ利用できます。member / admin の方は所属する組織のオーナーに依頼してください。
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      )}
     </div>
   )
 }

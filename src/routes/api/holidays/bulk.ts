@@ -1,16 +1,17 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { resolveCaller, requireAdmin } from '@/shared/server/apiAuth'
+import { resolveCaller, requireOwner } from '@/shared/server/apiAuth'
 import { bulkCreateHolidaysHandler } from '@/features/holidays/server/handlers.server'
 import { BulkCreateHolidaysInputSchema } from '@/features/holidays/schemas'
 
 // POST /api/holidays/bulk — 公休の一括登録 (既存と重複する date は skip)
+// requireOwner: holidays/create・delete と一貫させ、所定休日マスタの編集は owner 専用にする
 export const Route = createFileRoute('/api/holidays/bulk')({
   server: {
     handlers: {
       POST: async ({ request }) => {
         const r = await resolveCaller(request)
         if (!r.ok) return Response.json({ error: r.code }, { status: r.status })
-        const guard = requireAdmin(r.ctx)
+        const guard = requireOwner(r.ctx)
         if (guard) return guard
         const body = await request.json().catch(() => ({}))
         const parsed = BulkCreateHolidaysInputSchema.safeParse(body)

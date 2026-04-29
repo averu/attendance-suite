@@ -70,10 +70,12 @@ function add(
  * 月内の各日 (任意順) を受け取って集計する。
  * 内部で workDate (昇順) にソートして decomposeDailyPremium に carryIn を渡す。
  * laborCategory='manager' の場合は時間外/休日割増は 0、深夜帯のみ within night に集計される。
+ * laborCategory='discretionary' で discretionaryDeemedMinutes 設定時はみなし時間ベースで OT 算出。
  */
 export function computeMonthlyBreakdown(
   days: ReadonlyArray<DayInput>,
   laborCategory: LaborCategory = 'general',
+  discretionaryDeemedMinutes: number | null | undefined = null,
 ): MonthlyBreakdown {
   const sorted = [...days].sort((a, b) => a.workDate.localeCompare(b.workDate))
   let totals = EMPTY
@@ -85,6 +87,7 @@ export function computeMonthlyBreakdown(
       d.isLegalHoliday,
       carryIn,
       laborCategory,
+      discretionaryDeemedMinutes,
     )
     totals = add(totals, r.decomposition)
     carryIn += r.dailyLegalOvertimeMinutes
