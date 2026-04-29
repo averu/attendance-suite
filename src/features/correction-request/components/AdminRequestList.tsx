@@ -18,6 +18,7 @@ import {
 } from '@/shared/ui/table'
 import { Card, CardContent } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'
+import { Badge } from '@/shared/ui/badge'
 
 function fmtTime(iso: string | null): string {
   if (!iso) return '-'
@@ -129,6 +130,7 @@ export function AdminRequestList() {
                 />
               </TableHead>
               <TableHead>申請者</TableHead>
+              <TableHead>種別</TableHead>
               <TableHead>対象日</TableHead>
               <TableHead>理由</TableHead>
               <TableHead>出勤希望</TableHead>
@@ -150,27 +152,42 @@ export function AdminRequestList() {
                   />
                 </TableCell>
                 <TableCell className="font-medium">{r.requesterName}</TableCell>
+                <TableCell>
+                  {r.requestType === 'delete' ? (
+                    <Badge variant="destructive">削除</Badge>
+                  ) : (
+                    <Badge variant="outline">修正</Badge>
+                  )}
+                </TableCell>
                 <TableCell className="font-mono">{r.targetDate}</TableCell>
                 <TableCell className="max-w-xs truncate">{r.reason}</TableCell>
-                <TableCell className="font-mono text-xs">
-                  {fmtTime(r.proposedClockInAt)}
-                </TableCell>
-                <TableCell className="font-mono text-xs">
-                  {fmtTime(r.proposedClockOutAt)}
-                </TableCell>
-                <TableCell className="font-mono text-xs">
-                  {(() => {
-                    const lines = formatProposedBreaks(r.proposedBreaks)
-                    if (lines.length === 0) return '-'
-                    return (
-                      <div className="grid gap-0.5">
-                        {lines.map((l, i) => (
-                          <span key={i}>{l}</span>
-                        ))}
-                      </div>
-                    )
-                  })()}
-                </TableCell>
+                {r.requestType === 'delete' ? (
+                  <TableCell colSpan={3} className="text-xs text-muted-foreground">
+                    打刻を削除する申請 (時刻の指定なし)
+                  </TableCell>
+                ) : (
+                  <>
+                    <TableCell className="font-mono text-xs">
+                      {fmtTime(r.proposedClockInAt)}
+                    </TableCell>
+                    <TableCell className="font-mono text-xs">
+                      {fmtTime(r.proposedClockOutAt)}
+                    </TableCell>
+                    <TableCell className="font-mono text-xs">
+                      {(() => {
+                        const lines = formatProposedBreaks(r.proposedBreaks)
+                        if (lines.length === 0) return '-'
+                        return (
+                          <div className="grid gap-0.5">
+                            {lines.map((l, i) => (
+                              <span key={i}>{l}</span>
+                            ))}
+                          </div>
+                        )
+                      })()}
+                    </TableCell>
+                  </>
+                )}
                 <TableCell className="flex gap-2">
                   <Button
                     size="sm"

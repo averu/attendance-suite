@@ -45,19 +45,24 @@ export async function createCorrectionRequestHandler(
   input: CreateCorrectionRequestInput,
 ): Promise<{ id: string }> {
   await ensureNotLocked(ctx, input.targetDate)
+  const isDelete = input.requestType === 'delete'
   const [row] = await db
     .insert(correctionRequests)
     .values({
       organizationId: ctx.organization.id,
       requesterUserId: ctx.user.id,
       targetDate: input.targetDate,
-      proposedClockInAt: input.proposedClockInAt
-        ? new Date(input.proposedClockInAt)
-        : null,
-      proposedClockOutAt: input.proposedClockOutAt
-        ? new Date(input.proposedClockOutAt)
-        : null,
-      proposedBreaks: input.proposedBreaks ?? null,
+      requestType: input.requestType,
+      // delete 申請は提案値を持たない (UI でも入力させない)
+      proposedClockInAt:
+        !isDelete && input.proposedClockInAt
+          ? new Date(input.proposedClockInAt)
+          : null,
+      proposedClockOutAt:
+        !isDelete && input.proposedClockOutAt
+          ? new Date(input.proposedClockOutAt)
+          : null,
+      proposedBreaks: isDelete ? null : input.proposedBreaks ?? null,
       reason: input.reason,
       status: 'pending',
     })
@@ -119,6 +124,7 @@ function toDTO(row: {
     requesterUserId: row.r.requesterUserId,
     requesterName: row.u.name,
     targetDate: row.r.targetDate,
+    requestType: row.r.requestType,
     proposedClockInAt: row.r.proposedClockInAt
       ? row.r.proposedClockInAt.toISOString()
       : null,
@@ -165,7 +171,21 @@ async function applyApprovedRequest(
   request: typeof correctionRequests.$inferSelect,
 ): Promise<void> {
   await db.transaction(async (tx) => {
-    // 既存 entry を find or insert
+    // delete 申請: 該当 time_entry を削除 (FK CASCADE で breaks も消える)。
+    // 既に entry が無ければ no-op (誤申請でも害はない)。
+    if (request.requestType === 'delete') {
+      await tx
+        .delete(timeEntries)
+        .where(
+          and(
+            eq(timeEntries.userId, requesterUserId),
+            eq(timeEntries.workDate, request.targetDate),
+          ),
+        )
+      return
+    }
+
+    // edit 申請: 既存 entry を find or insert
     const existing = await tx
       .select()
       .from(timeEntries)

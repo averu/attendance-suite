@@ -5,6 +5,7 @@ export {
   useBreakStart,
   useBreakEnd,
   useEditAttendanceEntry,
+  useDeleteAttendanceEntry,
 } from './mutations'
 export { TodayCard } from './components/TodayCard'
 export { ClockButtons } from './components/ClockButtons'

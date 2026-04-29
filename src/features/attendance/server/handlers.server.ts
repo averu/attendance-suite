@@ -22,7 +22,10 @@ import type {
   TimeEntryStatus,
   TodayStatus,
 } from '../types'
-import type { EditAttendanceEntryInput } from '../schemas'
+import type {
+  DeleteAttendanceEntryInput,
+  EditAttendanceEntryInput,
+} from '../schemas'
 
 function toTimeEntryDTO(entry: TimeEntryRow, breakRows: BreakRow[]): TimeEntry {
   return {
@@ -458,6 +461,80 @@ export async function editAttendanceEntryHandler(
     .from(breaks)
     .where(eq(breaks.timeEntryId, entryId))
   return { entry: toTimeEntryDTO(updated, breakRows) }
+}
+
+/**
+ * 勤怠の 1 日分を削除する。
+ *  - member: 自分の (userId === ctx.user.id) のみ削除可
+ *  - admin+ : 他人の userId も可
+ * 月次ロック中は拒否、breaks は FK CASCADE で同時削除、削除前 snapshot を audit に残す。
+ * 該当 entry が存在しない場合は NOT_FOUND。
+ */
+export async function deleteAttendanceEntryHandler(
+  ctx: ApiCallerContext,
+  input: DeleteAttendanceEntryInput,
+): Promise<{ ok: true }> {
+  // 1) 権限チェック: 自分以外は admin+ のみ
+  const isSelf = input.userId === ctx.user.id
+  if (!isSelf && ctx.membership.role !== 'admin' && ctx.membership.role !== 'owner') {
+    const e = new Error('FORBIDDEN')
+    ;(e as { code?: string }).code = 'FORBIDDEN'
+    throw e
+  }
+
+  // 2) 対象 user が同じ組織か検証
+  const targetRows = await db
+    .select()
+    .from(memberships)
+    .where(
+      and(
+        eq(memberships.userId, input.userId),
+        eq(memberships.organizationId, ctx.organization.id),
+      ),
+    )
+    .limit(1)
+  if (!targetRows[0]) {
+    const e = new Error('TARGET_NOT_FOUND')
+    ;(e as { code?: string }).code = 'TARGET_NOT_FOUND'
+    throw e
+  }
+
+  // 3) 月次ロック確認
+  await ensureNotLocked(ctx, input.workDate)
+
+  // 4) 削除対象を取得 → snapshot → DELETE → audit (transaction)
+  await db.transaction(async (tx) => {
+    const [existing] = await tx
+      .select()
+      .from(timeEntries)
+      .where(
+        and(
+          eq(timeEntries.userId, input.userId),
+          eq(timeEntries.workDate, input.workDate),
+        ),
+      )
+      .limit(1)
+    if (!existing) {
+      const e = new Error('NOT_FOUND')
+      ;(e as { code?: string }).code = 'NOT_FOUND'
+      throw e
+    }
+    const beforeSnapshot = await snapshotEntry(tx, existing)
+    // breaks は FK CASCADE で消えるので明示削除不要
+    await tx.delete(timeEntries).where(eq(timeEntries.id, existing.id))
+    await tx.insert(attendanceAudits).values({
+      organizationId: ctx.organization.id,
+      targetUserId: input.userId,
+      workDate: input.workDate,
+      actorUserId: ctx.user.id,
+      action: 'delete',
+      beforeJson: beforeSnapshot,
+      afterJson: null,
+      note: null,
+    })
+  })
+
+  return { ok: true }
 }
 
 // ----- 監査ログ閲覧 (admin+ 限定) -----

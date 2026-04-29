@@ -1,6 +1,10 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
+import { Loader2, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { attendanceQueries } from '../queries'
+import { useDeleteAttendanceEntry } from '../mutations'
+import { useSession } from '@/features/auth'
 import { formatTime } from '@/shared/lib/datetime'
 import {
   Table,
@@ -11,6 +15,7 @@ import {
   TableRow,
 } from '@/shared/ui/table'
 import { Badge } from '@/shared/ui/badge'
+import { Button } from '@/shared/ui/button'
 import { Card, CardContent } from '@/shared/ui/card'
 
 const STATUS_LABEL: Record<string, string> = {
@@ -37,6 +42,29 @@ export function AttendanceMonthTable({
   const { data: items } = useSuspenseQuery(
     attendanceQueries.monthly(yearMonth, userId),
   )
+  const session = useSession()
+  const callerUserId = session.data.user?.id
+  // 削除ボタンの target user id: admin 表示時 (userId prop あり) はそれ、自分の画面なら自分
+  const targetUserId = userId ?? callerUserId ?? null
+  const isAdminView = !!userId
+  const role = session.data.membership?.role
+  const isAdmin = role === 'admin' || role === 'owner'
+  // member は自分のページ、admin は他人/自分どちらでも削除可能
+  const canDelete = !!targetUserId && (!isAdminView || isAdmin)
+  const del = useDeleteAttendanceEntry()
+
+  function onDelete(workDate: string) {
+    if (!targetUserId) return
+    if (!confirm(`${workDate} の打刻を削除しますか？ (この操作は監査ログに残ります)`))
+      return
+    del.mutate(
+      { userId: targetUserId, workDate },
+      {
+        onSuccess: () => toast.success('削除しました'),
+        onError: (e) => toast.error((e as Error).message),
+      },
+    )
+  }
   if (items.length === 0) {
     return (
       <Card>
@@ -58,6 +86,7 @@ export function AttendanceMonthTable({
               <TableHead>退勤</TableHead>
               <TableHead className="text-right">労働</TableHead>
               <TableHead className="text-right">休憩</TableHead>
+              {canDelete && <TableHead className="w-12"></TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -97,6 +126,26 @@ export function AttendanceMonthTable({
                 <TableCell className="text-right font-mono">
                   {fmtMinutes(d.breakMinutes)}
                 </TableCell>
+                {canDelete && (
+                  <TableCell>
+                    {d.status !== 'not_started' && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`${d.workDate} の打刻を削除`}
+                        disabled={del.isPending}
+                        onClick={() => onDelete(d.workDate)}
+                      >
+                        {del.isPending ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="size-4" />
+                        )}
+                      </Button>
+                    )}
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>

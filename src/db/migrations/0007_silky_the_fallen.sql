@@ -1,0 +1,1 @@
+ALTER TABLE "attendance_audit" ALTER COLUMN "after_json" DROP NOT NULL;

@@ -5,11 +5,14 @@ export type ProposedBreak = {
   endAt: string | null
 }
 
+export type CorrectionRequestType = 'edit' | 'delete'
+
 export type CorrectionRequestDTO = {
   id: string
   requesterUserId: string
   requesterName: string
   targetDate: string // YYYY-MM-DD
+  requestType: CorrectionRequestType
   proposedClockInAt: string | null
   proposedClockOutAt: string | null
   proposedBreaks: ProposedBreak[] | null

@@ -30,10 +30,11 @@ export const attendanceAudits = pgTable(
     actorUserId: text('actor_user_id')
       .notNull()
       .references(() => users.id, { onDelete: 'restrict' }),
-    action: text('action').notNull(), // 'edit' | 'create' (将来 'delete' 等)
+    action: text('action').notNull(), // 'edit' | 'create' | 'delete'
     // shape は AuditSnapshot (`{ entry: TimeEntry }`)。型は features/attendance/types で定義。
+    // delete 時は afterJson=null (削除後は state なし)
     beforeJson: jsonb('before_json').$type<{ entry: unknown } | null>(),
-    afterJson: jsonb('after_json').$type<{ entry: unknown }>().notNull(),
+    afterJson: jsonb('after_json').$type<{ entry: unknown } | null>(),
     note: text('note'),
     at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
   },

@@ -50,6 +50,7 @@ import { Route as ApiAttendanceRemindersRouteImport } from './routes/api/attenda
 import { Route as ApiAttendanceListRouteImport } from './routes/api/attendance/list'
 import { Route as ApiAttendanceEditEntryRouteImport } from './routes/api/attendance/edit-entry'
 import { Route as ApiAttendanceDetailRouteImport } from './routes/api/attendance/detail'
+import { Route as ApiAttendanceDeleteEntryRouteImport } from './routes/api/attendance/delete-entry'
 import { Route as ApiAttendanceClockOutRouteImport } from './routes/api/attendance/clock-out'
 import { Route as ApiAttendanceClockInRouteImport } from './routes/api/attendance/clock-in'
 import { Route as ApiAttendanceBreakStartRouteImport } from './routes/api/attendance/break-start'
@@ -305,6 +306,12 @@ const ApiAttendanceDetailRoute = ApiAttendanceDetailRouteImport.update({
   path: '/api/attendance/detail',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAttendanceDeleteEntryRoute =
+  ApiAttendanceDeleteEntryRouteImport.update({
+    id: '/api/attendance/delete-entry',
+    path: '/api/attendance/delete-entry',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiAttendanceClockOutRoute = ApiAttendanceClockOutRouteImport.update({
   id: '/api/attendance/clock-out',
   path: '/api/attendance/clock-out',
@@ -534,6 +541,7 @@ export interface FileRoutesByFullPath {
   '/api/attendance/break-start': typeof ApiAttendanceBreakStartRoute
   '/api/attendance/clock-in': typeof ApiAttendanceClockInRoute
   '/api/attendance/clock-out': typeof ApiAttendanceClockOutRoute
+  '/api/attendance/delete-entry': typeof ApiAttendanceDeleteEntryRoute
   '/api/attendance/detail': typeof ApiAttendanceDetailRoute
   '/api/attendance/edit-entry': typeof ApiAttendanceEditEntryRoute
   '/api/attendance/list': typeof ApiAttendanceListRoute
@@ -615,6 +623,7 @@ export interface FileRoutesByTo {
   '/api/attendance/break-start': typeof ApiAttendanceBreakStartRoute
   '/api/attendance/clock-in': typeof ApiAttendanceClockInRoute
   '/api/attendance/clock-out': typeof ApiAttendanceClockOutRoute
+  '/api/attendance/delete-entry': typeof ApiAttendanceDeleteEntryRoute
   '/api/attendance/detail': typeof ApiAttendanceDetailRoute
   '/api/attendance/edit-entry': typeof ApiAttendanceEditEntryRoute
   '/api/attendance/list': typeof ApiAttendanceListRoute
@@ -697,6 +706,7 @@ export interface FileRoutesById {
   '/api/attendance/break-start': typeof ApiAttendanceBreakStartRoute
   '/api/attendance/clock-in': typeof ApiAttendanceClockInRoute
   '/api/attendance/clock-out': typeof ApiAttendanceClockOutRoute
+  '/api/attendance/delete-entry': typeof ApiAttendanceDeleteEntryRoute
   '/api/attendance/detail': typeof ApiAttendanceDetailRoute
   '/api/attendance/edit-entry': typeof ApiAttendanceEditEntryRoute
   '/api/attendance/list': typeof ApiAttendanceListRoute
@@ -780,6 +790,7 @@ export interface FileRouteTypes {
     | '/api/attendance/break-start'
     | '/api/attendance/clock-in'
     | '/api/attendance/clock-out'
+    | '/api/attendance/delete-entry'
     | '/api/attendance/detail'
     | '/api/attendance/edit-entry'
     | '/api/attendance/list'
@@ -861,6 +872,7 @@ export interface FileRouteTypes {
     | '/api/attendance/break-start'
     | '/api/attendance/clock-in'
     | '/api/attendance/clock-out'
+    | '/api/attendance/delete-entry'
     | '/api/attendance/detail'
     | '/api/attendance/edit-entry'
     | '/api/attendance/list'
@@ -942,6 +954,7 @@ export interface FileRouteTypes {
     | '/api/attendance/break-start'
     | '/api/attendance/clock-in'
     | '/api/attendance/clock-out'
+    | '/api/attendance/delete-entry'
     | '/api/attendance/detail'
     | '/api/attendance/edit-entry'
     | '/api/attendance/list'
@@ -1022,6 +1035,7 @@ export interface RootRouteChildren {
   ApiAttendanceBreakStartRoute: typeof ApiAttendanceBreakStartRoute
   ApiAttendanceClockInRoute: typeof ApiAttendanceClockInRoute
   ApiAttendanceClockOutRoute: typeof ApiAttendanceClockOutRoute
+  ApiAttendanceDeleteEntryRoute: typeof ApiAttendanceDeleteEntryRoute
   ApiAttendanceDetailRoute: typeof ApiAttendanceDetailRoute
   ApiAttendanceEditEntryRoute: typeof ApiAttendanceEditEntryRoute
   ApiAttendanceListRoute: typeof ApiAttendanceListRoute
@@ -1352,6 +1366,13 @@ declare module '@tanstack/react-router' {
       path: '/api/attendance/detail'
       fullPath: '/api/attendance/detail'
       preLoaderRoute: typeof ApiAttendanceDetailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/attendance/delete-entry': {
+      id: '/api/attendance/delete-entry'
+      path: '/api/attendance/delete-entry'
+      fullPath: '/api/attendance/delete-entry'
+      preLoaderRoute: typeof ApiAttendanceDeleteEntryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/attendance/clock-out': {
@@ -1733,6 +1754,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAttendanceBreakStartRoute: ApiAttendanceBreakStartRoute,
   ApiAttendanceClockInRoute: ApiAttendanceClockInRoute,
   ApiAttendanceClockOutRoute: ApiAttendanceClockOutRoute,
+  ApiAttendanceDeleteEntryRoute: ApiAttendanceDeleteEntryRoute,
   ApiAttendanceDetailRoute: ApiAttendanceDetailRoute,
   ApiAttendanceEditEntryRoute: ApiAttendanceEditEntryRoute,
   ApiAttendanceListRoute: ApiAttendanceListRoute,

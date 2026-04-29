@@ -7,8 +7,11 @@ export const ProposedBreakSchema = z.object({
   endAt: IsoDateTime.nullable(),
 })
 
+export const CorrectionRequestTypeSchema = z.enum(['edit', 'delete'])
+
 export const CreateCorrectionRequestInputSchema = z.object({
   targetDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  requestType: CorrectionRequestTypeSchema.optional().default('edit'),
   proposedClockInAt: IsoDateTime.nullable().optional().default(null),
   proposedClockOutAt: IsoDateTime.nullable().optional().default(null),
   proposedBreaks: z.array(ProposedBreakSchema).nullable().optional().default(null),

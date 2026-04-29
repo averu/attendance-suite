@@ -1,7 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { postJson } from '@/shared/lib/apiClient'
 import type { TimeEntry } from './types'
-import type { EditAttendanceEntryInput } from './schemas'
+import type {
+  DeleteAttendanceEntryInput,
+  EditAttendanceEntryInput,
+} from './schemas'
 
 function makeMutation(path: string) {
   return function useFn() {
@@ -28,6 +31,19 @@ export function useEditAttendanceEntry() {
   return useMutation({
     mutationFn: (input: EditAttendanceEntryInput) =>
       postJson<{ entry: TimeEntry }>('/api/attendance/edit-entry', input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['attendance'] })
+      qc.invalidateQueries({ queryKey: ['summary'] })
+    },
+  })
+}
+
+// 1 日分を削除。member 自身 (自分の userId) または admin+ (他人) が呼べる。
+export function useDeleteAttendanceEntry() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: DeleteAttendanceEntryInput) =>
+      postJson<{ ok: true }>('/api/attendance/delete-entry', input),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['attendance'] })
       qc.invalidateQueries({ queryKey: ['summary'] })

@@ -72,19 +72,34 @@ export function MyRequestList() {
           <TableBody>
             {items.map((r) => (
               <TableRow key={r.id}>
-                <TableCell className="font-mono">{r.targetDate}</TableCell>
-                <TableCell className="font-mono text-xs">
-                  <div className="grid gap-0.5">
-                    <span>
-                      出勤: {fmtTime(r.proposedClockInAt)} / 退勤:{' '}
-                      {fmtTime(r.proposedClockOutAt)}
-                    </span>
-                    {formatProposedBreaks(r.proposedBreaks).map((l, i) => (
-                      <span key={i} className="text-muted-foreground">
-                        休憩: {l}
-                      </span>
-                    ))}
+                <TableCell className="font-mono">
+                  <div className="flex items-center gap-2">
+                    {r.requestType === 'delete' && (
+                      <Badge variant="destructive" className="text-[10px]">
+                        削除
+                      </Badge>
+                    )}
+                    <span>{r.targetDate}</span>
                   </div>
+                </TableCell>
+                <TableCell className="font-mono text-xs">
+                  {r.requestType === 'delete' ? (
+                    <span className="text-muted-foreground">
+                      打刻を削除する申請
+                    </span>
+                  ) : (
+                    <div className="grid gap-0.5">
+                      <span>
+                        出勤: {fmtTime(r.proposedClockInAt)} / 退勤:{' '}
+                        {fmtTime(r.proposedClockOutAt)}
+                      </span>
+                      {formatProposedBreaks(r.proposedBreaks).map((l, i) => (
+                        <span key={i} className="text-muted-foreground">
+                          休憩: {l}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </TableCell>
                 <TableCell className="max-w-xs truncate">{r.reason}</TableCell>
                 <TableCell>

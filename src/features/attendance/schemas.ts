@@ -63,3 +63,14 @@ export type GetMemberAttendanceDetailInput = z.infer<
   typeof GetMemberAttendanceDetailInputSchema
 >
 export type EditAttendanceEntryInput = z.infer<typeof EditAttendanceEntryInputSchema>
+
+// 勤怠 1 日分を削除する。member は自分の (userId=自分) 行のみ削除可、admin+ は他人も可。
+// 月次締めロック中の月は server で拒否される。breaks は FK CASCADE で同時削除。
+export const DeleteAttendanceEntryInputSchema = z.object({
+  userId: z.string().min(1),
+  workDate: WorkDateSchema,
+})
+
+export type DeleteAttendanceEntryInput = z.infer<
+  typeof DeleteAttendanceEntryInputSchema
+>

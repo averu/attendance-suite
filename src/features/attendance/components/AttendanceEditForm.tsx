@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Loader2, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { useEditAttendanceEntry } from '../mutations'
+import { useDeleteAttendanceEntry, useEditAttendanceEntry } from '../mutations'
 import type { TimeEntry } from '../types'
 import { Button } from '@/shared/ui/button'
 import {
@@ -48,6 +48,7 @@ export function AttendanceEditForm({
   onSuccess?: () => void
 }) {
   const edit = useEditAttendanceEntry()
+  const del = useDeleteAttendanceEntry()
   const [clockIn, setClockIn] = useState(timeFromIso(initialEntry?.clockInAt ?? null))
   const [clockOut, setClockOut] = useState(
     timeFromIso(initialEntry?.clockOutAt ?? null),
@@ -196,11 +197,43 @@ export function AttendanceEditForm({
             </Alert>
           )}
 
-          <div>
-            <Button type="submit" disabled={edit.isPending}>
+          <div className="flex items-center gap-2">
+            <Button type="submit" disabled={edit.isPending || del.isPending}>
               {edit.isPending && <Loader2 className="animate-spin" />}
               更新を保存
             </Button>
+            {initialEntry?.id && (
+              <Button
+                type="button"
+                variant="destructive"
+                disabled={edit.isPending || del.isPending}
+                onClick={() => {
+                  if (
+                    !confirm(
+                      `${workDate} の打刻を削除しますか？ (この操作は監査ログに残ります)`,
+                    )
+                  )
+                    return
+                  del.mutate(
+                    { userId, workDate },
+                    {
+                      onSuccess: () => {
+                        toast.success('削除しました')
+                        onSuccess?.()
+                      },
+                      onError: (e) => toast.error((e as Error).message),
+                    },
+                  )
+                }}
+              >
+                {del.isPending ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  <Trash2 className="size-4" />
+                )}
+                1 日分を削除
+              </Button>
+            )}
           </div>
         </form>
       </CardContent>

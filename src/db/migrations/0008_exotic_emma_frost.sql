@@ -1,0 +1,2 @@
+CREATE TYPE "public"."correction_request_type" AS ENUM('edit', 'delete');--> statement-breakpoint
+ALTER TABLE "correction_request" ADD COLUMN "request_type" "correction_request_type" DEFAULT 'edit' NOT NULL;

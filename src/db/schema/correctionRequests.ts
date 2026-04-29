@@ -18,6 +18,12 @@ export const correctionRequestStatusEnum = pgEnum('correction_request_status', [
   'cancelled',
 ])
 
+// 申請の種別: 'edit' = 提案値で更新、'delete' = 該当 time_entry を丸ごと削除 (休日の誤打刻取消用)
+export const correctionRequestTypeEnum = pgEnum('correction_request_type', [
+  'edit',
+  'delete',
+])
+
 export type ProposedBreak = {
   startAt: string // ISO timestamp
   endAt: string | null
@@ -34,6 +40,7 @@ export const correctionRequests = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     targetDate: date('target_date').notNull(),
+    requestType: correctionRequestTypeEnum('request_type').notNull().default('edit'),
     proposedClockInAt: timestamp('proposed_clock_in_at', { withTimezone: true }),
     proposedClockOutAt: timestamp('proposed_clock_out_at', { withTimezone: true }),
     proposedBreaks: jsonb('proposed_breaks').$type<ProposedBreak[] | null>(),
