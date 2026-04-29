@@ -24,7 +24,15 @@ export const Route = createFileRoute('/api/attendance/delete-entry')({
           return Response.json(result)
         } catch (e) {
           const code = (e as { code?: string }).code ?? 'BAD_REQUEST'
-          return Response.json({ error: code }, { status: 400 })
+          // FORBIDDEN は 403、NOT_FOUND は 404、月次ロックは 423、それ以外は 400 で返す
+          const STATUS_MAP: Record<string, number> = {
+            FORBIDDEN: 403,
+            NOT_FOUND: 404,
+            TARGET_NOT_FOUND: 404,
+            MONTH_LOCKED: 423,
+          }
+          const status = STATUS_MAP[code] ?? 400
+          return Response.json({ error: code }, { status })
         }
       },
     },

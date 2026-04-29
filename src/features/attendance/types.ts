@@ -40,7 +40,7 @@ export type AuditSnapshot = {
 export type AuditLogEntry = {
   id: string
   workDate: string
-  action: 'edit' | 'create'
+  action: 'edit' | 'create' | 'delete'
   actorUserId: string
   actorName: string
   before: AuditSnapshot | null

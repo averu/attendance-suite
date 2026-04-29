@@ -42,8 +42,20 @@ export function AuditLogList({
               <li key={a.id} className="border rounded-md p-3 grid gap-1 text-sm">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Badge variant={a.action === 'create' ? 'default' : 'secondary'}>
-                      {a.action === 'create' ? '新規作成' : '編集'}
+                    <Badge
+                      variant={
+                        a.action === 'create'
+                          ? 'default'
+                          : a.action === 'delete'
+                            ? 'destructive'
+                            : 'secondary'
+                      }
+                    >
+                      {a.action === 'create'
+                        ? '新規作成'
+                        : a.action === 'delete'
+                          ? '削除'
+                          : '編集'}
                     </Badge>
                     <span className="font-medium">{a.actorName}</span>
                   </div>

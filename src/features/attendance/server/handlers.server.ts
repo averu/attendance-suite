@@ -559,7 +559,7 @@ export async function listAttendanceAuditsHandler(
   return rows.map((r) => ({
     id: r.a.id,
     workDate: r.a.workDate,
-    action: r.a.action as 'edit' | 'create',
+    action: r.a.action as 'edit' | 'create' | 'delete',
     actorUserId: r.a.actorUserId,
     actorName: r.u.name,
     before: r.a.beforeJson as AuditSnapshot | null,

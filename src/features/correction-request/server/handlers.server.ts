@@ -173,11 +173,13 @@ async function applyApprovedRequest(
   await db.transaction(async (tx) => {
     // delete 申請: 該当 time_entry を削除 (FK CASCADE で breaks も消える)。
     // 既に entry が無ければ no-op (誤申請でも害はない)。
+    // multi-org 対応: 同一 user の別 org 行を巻き込まないよう organizationId も条件に含める。
     if (request.requestType === 'delete') {
       await tx
         .delete(timeEntries)
         .where(
           and(
+            eq(timeEntries.organizationId, organizationId),
             eq(timeEntries.userId, requesterUserId),
             eq(timeEntries.workDate, request.targetDate),
           ),
@@ -185,12 +187,13 @@ async function applyApprovedRequest(
       return
     }
 
-    // edit 申請: 既存 entry を find or insert
+    // edit 申請: 既存 entry を find or insert (multi-org 対応で organizationId 条件付き)
     const existing = await tx
       .select()
       .from(timeEntries)
       .where(
         and(
+          eq(timeEntries.organizationId, organizationId),
           eq(timeEntries.userId, requesterUserId),
           eq(timeEntries.workDate, request.targetDate),
         ),

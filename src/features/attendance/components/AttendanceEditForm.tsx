@@ -53,7 +53,8 @@ export function AttendanceEditForm({
   const [clockOut, setClockOut] = useState(
     timeFromIso(initialEntry?.clockOutAt ?? null),
   )
-  const [note, setNote] = useState(initialEntry?.id ? '' : '')
+  // note は今回の編集に対するメモなので毎回空から開始する (TimeEntry DTO に既存 note は載っていない)
+  const [note, setNote] = useState('')
   const [breakRows, setBreakRows] = useState<BreakRow[]>(
     (initialEntry?.breaks ?? [])
       .filter((b) => b.endAt)

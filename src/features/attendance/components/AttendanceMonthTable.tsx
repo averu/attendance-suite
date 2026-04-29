@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Loader2, Trash2 } from 'lucide-react'
@@ -52,16 +53,25 @@ export function AttendanceMonthTable({
   // member は自分のページ、admin は他人/自分どちらでも削除可能
   const canDelete = !!targetUserId && (!isAdminView || isAdmin)
   const del = useDeleteAttendanceEntry()
+  // 行ごとの disabled 制御: 削除中の workDate のみ disable し、他行は引き続き操作可能にする
+  const [deletingDate, setDeletingDate] = useState<string | null>(null)
 
   function onDelete(workDate: string) {
     if (!targetUserId) return
     if (!confirm(`${workDate} の打刻を削除しますか？ (この操作は監査ログに残ります)`))
       return
+    setDeletingDate(workDate)
     del.mutate(
       { userId: targetUserId, workDate },
       {
-        onSuccess: () => toast.success('削除しました'),
-        onError: (e) => toast.error((e as Error).message),
+        onSuccess: () => {
+          setDeletingDate(null)
+          toast.success('削除しました')
+        },
+        onError: (e) => {
+          setDeletingDate(null)
+          toast.error((e as Error).message)
+        },
       },
     )
   }
@@ -134,10 +144,10 @@ export function AttendanceMonthTable({
                         variant="ghost"
                         size="icon"
                         aria-label={`${d.workDate} の打刻を削除`}
-                        disabled={del.isPending}
+                        disabled={deletingDate === d.workDate}
                         onClick={() => onDelete(d.workDate)}
                       >
-                        {del.isPending ? (
+                        {deletingDate === d.workDate ? (
                           <Loader2 className="size-4 animate-spin" />
                         ) : (
                           <Trash2 className="size-4" />
