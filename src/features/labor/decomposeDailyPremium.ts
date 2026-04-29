@@ -36,6 +36,19 @@ export type DailyPremiumDecomposition = {
   legalHolidayNightMinutes: number
 }
 
+/**
+ * 労基法上の労働者区分。割増賃金 / 残業集計の適用範囲を決める。
+ *   'general'        — 一般。8h/40h, 60h, 法定休日, 深夜の各割増を適用
+ *   'manager'        — 管理監督者 (労基法 41 条 2 号)。労働時間・休日は除外、深夜のみ適用
+ *   'discretionary'  — 裁量労働制。みなし時間カラム未実装のため本実装は general と同じ
+ *   'highly_skilled' — 高度プロフェッショナル (労基法 41 条の 2)。深夜含めて全免除
+ */
+export type LaborCategory =
+  | 'general'
+  | 'manager'
+  | 'discretionary'
+  | 'highly_skilled'
+
 /** 指定 UTC ms が JST における深夜帯 (22:00-05:00) に該当するか */
 function isInNightBand(utcMs: number): boolean {
   const h = new Date(utcMs + JST_OFFSET_MS).getUTCHours()
@@ -82,10 +95,57 @@ export function decomposeDailyPremium(
   workSegments: ReadonlyArray<TimeRange>,
   isLegalHoliday: boolean,
   carryInMonthlyLegalOTMinutes: number = 0,
+  laborCategory: LaborCategory = 'general',
 ): {
   decomposition: DailyPremiumDecomposition
   dailyLegalOvertimeMinutes: number
 } {
+  // 高度プロフェッショナル (41 条の 2): 労働時間・休日・**深夜含めて**全免除。
+  //   全バケットを 0 にして実労働時間も計上しない (時間集計の対象外)。
+  //   合計分 / 深夜分も 0 として返るので summary も「-」に近い表示になる。
+  if (laborCategory === 'highly_skilled') {
+    return {
+      decomposition: {
+        withinLegalDaytimeMinutes: 0,
+        withinLegalNightMinutes: 0,
+        legalOvertimeUnder60DaytimeMinutes: 0,
+        legalOvertimeUnder60NightMinutes: 0,
+        legalOvertimeOver60DaytimeMinutes: 0,
+        legalOvertimeOver60NightMinutes: 0,
+        legalHolidayDaytimeMinutes: 0,
+        legalHolidayNightMinutes: 0,
+      },
+      dailyLegalOvertimeMinutes: 0,
+    }
+  }
+
+  // 管理監督者 (41 条 2 号): 労働時間・休日に関する割増は適用除外。
+  //   - 8h/40h 超 / 60h 超 / 法定休日割増 すべて 0
+  //   - 深夜帯のみ within night バケットに集計 (深夜割増 25% は適用)
+  if (laborCategory === 'manager') {
+    const ms = { withinLegalDaytime: 0, withinLegalNight: 0 }
+    for (const seg of workSegments) {
+      for (const sub of subdivideByNightBand(seg)) {
+        const len = sub.end - sub.start
+        if (len <= 0) continue
+        if (sub.isNight) ms.withinLegalNight += len
+        else ms.withinLegalDaytime += len
+      }
+    }
+    return {
+      decomposition: {
+        withinLegalDaytimeMinutes: Math.round(ms.withinLegalDaytime / MS_PER_MIN),
+        withinLegalNightMinutes: Math.round(ms.withinLegalNight / MS_PER_MIN),
+        legalOvertimeUnder60DaytimeMinutes: 0,
+        legalOvertimeUnder60NightMinutes: 0,
+        legalOvertimeOver60DaytimeMinutes: 0,
+        legalOvertimeOver60NightMinutes: 0,
+        legalHolidayDaytimeMinutes: 0,
+        legalHolidayNightMinutes: 0,
+      },
+      dailyLegalOvertimeMinutes: 0,
+    }
+  }
   // 内部は ms で集計し、最後に分に丸める (累積誤差回避)
   const ms = {
     withinLegalDaytime: 0,

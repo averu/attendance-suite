@@ -1,6 +1,19 @@
 export type Role = 'member' | 'admin' | 'owner'
 export type InviteRole = 'member' | 'admin'
 
+export type LaborCategory =
+  | 'general'
+  | 'manager'
+  | 'discretionary'
+  | 'highly_skilled'
+
+export const LABOR_CATEGORY_LABEL: Record<LaborCategory, string> = {
+  general: '一般労働者',
+  manager: '管理監督者 (41 条 2 号)',
+  discretionary: '裁量労働制',
+  highly_skilled: '高度プロフェッショナル (41 条の 2)',
+}
+
 export type Member = {
   membershipId: string
   userId: string
@@ -14,6 +27,8 @@ export type Member = {
   weeklyScheduledDays: number | null
   /** 週所定労働時間 (時間)。未設定なら null */
   weeklyScheduledHours: number | null
+  /** 労基法上の区分。'manager' は管理監督者 (時間外/休日割増の対象外) */
+  laborCategory: LaborCategory
 }
 
 export type Invitation = {

@@ -21,7 +21,15 @@ export { OrganizationsPanel } from './components/OrganizationsPanel'
 export { MemberWorkProfileForm } from './components/MemberWorkProfileForm'
 export { BulkMemberWorkProfileEditor } from './components/BulkMemberWorkProfileEditor'
 export { BulkInviteForm } from './components/BulkInviteForm'
-export type { Member, Invitation, Organization, Role, InviteRole } from './types'
+export type {
+  Member,
+  Invitation,
+  Organization,
+  Role,
+  InviteRole,
+  LaborCategory,
+} from './types'
+export { LABOR_CATEGORY_LABEL } from './types'
 export { canLeaveOrganization } from './canLeaveOrganization'
 export type {
   LeaveCheckMember,

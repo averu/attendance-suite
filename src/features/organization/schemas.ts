@@ -46,7 +46,14 @@ export const BulkRevokeInvitationsInputSchema = z.object({
   invitationIds: z.array(z.string().uuid()).min(1).max(500),
 })
 
-// 労務情報 (有給算定の入力) を更新するスキーマ。null を渡すとクリア。
+export const LaborCategorySchema = z.enum([
+  'general',
+  'manager',
+  'discretionary',
+  'highly_skilled',
+])
+
+// 労務情報 (有給算定 + 労基法区分) を更新するスキーマ。null を渡すとクリア。
 export const UpdateMemberWorkProfileInputSchema = z.object({
   membershipId: z.string().uuid(),
   hireDate: z
@@ -55,6 +62,7 @@ export const UpdateMemberWorkProfileInputSchema = z.object({
     .nullable(),
   weeklyScheduledDays: z.number().int().min(0).max(7).nullable(),
   weeklyScheduledHours: z.number().min(0).max(168).nullable(),
+  laborCategory: LaborCategorySchema.optional().default('general'),
 })
 
 export type InviteInput = z.infer<typeof InviteInputSchema>

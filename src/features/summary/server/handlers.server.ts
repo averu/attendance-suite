@@ -188,7 +188,7 @@ export async function getOrgMonthlySummaryHandler(
         ),
       })
     }
-    const breakdown = computeMonthlyBreakdown(dayInputs)
+    const breakdown = computeMonthlyBreakdown(dayInputs, r.m.laborCategory)
     const { paidLeaveDays, otherLeaveDays } = countLeaveDaysInMonth(
       leavesByUser.get(r.u.id) ?? [],
       yearMonth,

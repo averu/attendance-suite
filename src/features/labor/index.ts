@@ -28,7 +28,10 @@ export {
 } from './premiumRates'
 export type { PremiumAttrs } from './premiumRates'
 export { decomposeDailyPremium } from './decomposeDailyPremium'
-export type { DailyPremiumDecomposition } from './decomposeDailyPremium'
+export type {
+  DailyPremiumDecomposition,
+  LaborCategory,
+} from './decomposeDailyPremium'
 export { computeMonthlyBreakdown } from './monthlyBreakdown'
 export type { DayInput, MonthlyBreakdown } from './monthlyBreakdown'
 export {

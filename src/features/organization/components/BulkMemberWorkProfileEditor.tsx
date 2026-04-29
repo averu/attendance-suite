@@ -23,11 +23,18 @@ import {
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 
+type LaborCategoryStr =
+  | 'general'
+  | 'manager'
+  | 'discretionary'
+  | 'highly_skilled'
+
 type Row = {
   membershipId: string
   hireDate: string
   weeklyScheduledDays: string
   weeklyScheduledHours: string
+  laborCategory: LaborCategoryStr
 }
 
 function memberToRow(m: Member): Row {
@@ -38,6 +45,7 @@ function memberToRow(m: Member): Row {
       m.weeklyScheduledDays == null ? '' : String(m.weeklyScheduledDays),
     weeklyScheduledHours:
       m.weeklyScheduledHours == null ? '' : String(m.weeklyScheduledHours),
+    laborCategory: m.laborCategory,
   }
 }
 
@@ -45,7 +53,8 @@ function rowEquals(a: Row, b: Row): boolean {
   return (
     a.hireDate === b.hireDate &&
     a.weeklyScheduledDays === b.weeklyScheduledDays &&
-    a.weeklyScheduledHours === b.weeklyScheduledHours
+    a.weeklyScheduledHours === b.weeklyScheduledHours &&
+    a.laborCategory === b.laborCategory
   )
 }
 
@@ -56,6 +65,7 @@ function parseRow(r: Row): {
     hireDate: string | null
     weeklyScheduledDays: number | null
     weeklyScheduledHours: number | null
+    laborCategory: LaborCategoryStr
   }
 } | { ok: false; error: string } {
   const hireDate = r.hireDate === '' ? null : r.hireDate
@@ -78,6 +88,7 @@ function parseRow(r: Row): {
       hireDate,
       weeklyScheduledDays: days === null ? null : Math.floor(days),
       weeklyScheduledHours: hours,
+      laborCategory: r.laborCategory,
     },
   }
 }
@@ -172,6 +183,7 @@ export function BulkMemberWorkProfileEditor() {
               <TableHead className="w-44">雇入日</TableHead>
               <TableHead className="w-28">週所定日数</TableHead>
               <TableHead className="w-32">週所定時間</TableHead>
+              <TableHead className="w-32">区分</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -221,6 +233,23 @@ export function BulkMemberWorkProfileEditor() {
                         patch(idx, { weeklyScheduledHours: e.target.value })
                       }
                     />
+                  </TableCell>
+                  <TableCell>
+                    <select
+                      value={r.laborCategory}
+                      onChange={(e) =>
+                        patch(idx, {
+                          laborCategory: e.target.value as LaborCategoryStr,
+                        })
+                      }
+                      className="border rounded-md px-2 py-1 text-sm h-9 w-full bg-background"
+                      aria-label={`${m.name} の労基法区分`}
+                    >
+                      <option value="general">一般</option>
+                      <option value="manager">管理監督者</option>
+                      <option value="discretionary">裁量労働制</option>
+                      <option value="highly_skilled">高プロ</option>
+                    </select>
                   </TableCell>
                 </TableRow>
               )

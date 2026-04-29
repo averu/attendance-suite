@@ -2,7 +2,10 @@
 // decomposeDailyPremium が日ごとに carryIn (= 月内 OT 累積) を必要とするので、
 // 月内の日付を昇順にイテレートして carryIn を渡しながら集計する。
 
-import type { DailyPremiumDecomposition } from './decomposeDailyPremium'
+import type {
+  DailyPremiumDecomposition,
+  LaborCategory,
+} from './decomposeDailyPremium'
 import { decomposeDailyPremium } from './decomposeDailyPremium'
 import type { TimeRange } from './types'
 
@@ -66,16 +69,23 @@ function add(
 /**
  * 月内の各日 (任意順) を受け取って集計する。
  * 内部で workDate (昇順) にソートして decomposeDailyPremium に carryIn を渡す。
+ * laborCategory='manager' の場合は時間外/休日割増は 0、深夜帯のみ within night に集計される。
  */
 export function computeMonthlyBreakdown(
   days: ReadonlyArray<DayInput>,
+  laborCategory: LaborCategory = 'general',
 ): MonthlyBreakdown {
   const sorted = [...days].sort((a, b) => a.workDate.localeCompare(b.workDate))
   let totals = EMPTY
   let carryIn = 0
   const perDay: MonthlyBreakdown['perDay'] = []
   for (const d of sorted) {
-    const r = decomposeDailyPremium(d.workSegments, d.isLegalHoliday, carryIn)
+    const r = decomposeDailyPremium(
+      d.workSegments,
+      d.isLegalHoliday,
+      carryIn,
+      laborCategory,
+    )
     totals = add(totals, r.decomposition)
     carryIn += r.dailyLegalOvertimeMinutes
     perDay.push({

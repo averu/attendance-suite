@@ -132,6 +132,99 @@ describe('decomposeDailyPremium — 法定休日', () => {
   })
 })
 
+describe('decomposeDailyPremium — 管理監督者 (manager)', () => {
+  it('manager は 10h 平日でも 法定外残業 0、全部 within に集計される', () => {
+    const r = decomposeDailyPremium(
+      [seg('2026-04-29T00:00:00Z', '2026-04-29T10:00:00Z')], // 9-19 JST = 10h
+      false,
+      0,
+      'manager',
+    )
+    expect(r.decomposition.legalOvertimeUnder60DaytimeMinutes).toBe(0)
+    expect(r.decomposition.legalOvertimeOver60DaytimeMinutes).toBe(0)
+    expect(r.decomposition.withinLegalDaytimeMinutes).toBe(600)
+    expect(r.dailyLegalOvertimeMinutes).toBe(0)
+  })
+
+  it('manager は法定休日労働でも legalHoliday バケットに行かず within に集計', () => {
+    const r = decomposeDailyPremium(
+      [seg('2026-04-29T00:00:00Z', '2026-04-29T08:00:00Z')],
+      true,
+      0,
+      'manager',
+    )
+    expect(r.decomposition.legalHolidayDaytimeMinutes).toBe(0)
+    expect(r.decomposition.withinLegalDaytimeMinutes).toBe(480)
+  })
+
+  it('manager の深夜は withinLegalNight に集計 (深夜割増 25% 適用)', () => {
+    // 14-24 JST = 05-15 UTC = 10h、うち 22-24 JST = 13-15 UTC が深夜帯 2h
+    const r = decomposeDailyPremium(
+      [seg('2026-04-29T05:00:00Z', '2026-04-29T15:00:00Z')],
+      false,
+      0,
+      'manager',
+    )
+    expect(r.decomposition.withinLegalDaytimeMinutes).toBe(8 * 60)
+    expect(r.decomposition.withinLegalNightMinutes).toBe(2 * 60)
+    expect(r.decomposition.legalOvertimeUnder60NightMinutes).toBe(0)
+  })
+
+  it('manager は carryIn=60h でも over60h バケットを使わない', () => {
+    const r = decomposeDailyPremium(
+      [seg('2026-04-29T00:00:00Z', '2026-04-29T10:00:00Z')],
+      false,
+      59 * 60 + 30,
+      'manager',
+    )
+    expect(r.decomposition.legalOvertimeOver60DaytimeMinutes).toBe(0)
+    expect(r.decomposition.legalOvertimeUnder60DaytimeMinutes).toBe(0)
+    expect(r.decomposition.withinLegalDaytimeMinutes).toBe(600)
+  })
+})
+
+describe('decomposeDailyPremium — 高度プロフェッショナル (highly_skilled)', () => {
+  it('深夜帯を含む 10h でも全バケット 0', () => {
+    // 14-24 JST: 22-24 JST が深夜帯 2h
+    const r = decomposeDailyPremium(
+      [seg('2026-04-29T05:00:00Z', '2026-04-29T15:00:00Z')],
+      false,
+      0,
+      'highly_skilled',
+    )
+    expect(r.dailyLegalOvertimeMinutes).toBe(0)
+    expect(Object.values(r.decomposition).every((v) => v === 0)).toBe(true)
+  })
+
+  it('法定休日労働でも全バケット 0', () => {
+    const r = decomposeDailyPremium(
+      [seg('2026-04-29T00:00:00Z', '2026-04-29T08:00:00Z')],
+      true,
+      0,
+      'highly_skilled',
+    )
+    expect(Object.values(r.decomposition).every((v) => v === 0)).toBe(true)
+  })
+})
+
+describe('decomposeDailyPremium — 裁量労働制 (discretionary)', () => {
+  it('現実装は general と同等の集計 (みなし時間カラム未実装のため)', () => {
+    const general = decomposeDailyPremium(
+      [seg('2026-04-29T00:00:00Z', '2026-04-29T10:00:00Z')],
+      false,
+      0,
+      'general',
+    )
+    const discretionary = decomposeDailyPremium(
+      [seg('2026-04-29T00:00:00Z', '2026-04-29T10:00:00Z')],
+      false,
+      0,
+      'discretionary',
+    )
+    expect(discretionary).toEqual(general)
+  })
+})
+
 describe('decomposeDailyPremium — エッジ', () => {
   it('空 segments → 全 0', () => {
     const r = decomposeDailyPremium([], false, 0)

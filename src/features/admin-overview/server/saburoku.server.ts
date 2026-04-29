@@ -143,9 +143,11 @@ export async function getOrgSaburokuFindingsHandler(
   for (let i = 0; i < 12; i++) months.push(addMonths(windowStart, i))
 
   const findings: OrgSaburokuFinding[] = memberRows.map((r) => {
+    // 管理監督者 (manager) は労基法 41 条 2 号により労働時間規定の適用除外
+    // → 36 協定の対象外。breakdown を呼ぶ意味もないので空配列を返し severity='clean'
     const userMonths: SaburokuMonthInput[] = months.map((ym) => {
       const days = dayInputsByKey.get(k(r.u.id, ym)) ?? []
-      const breakdown = computeMonthlyBreakdown(days)
+      const breakdown = computeMonthlyBreakdown(days, r.m.laborCategory)
       return {
         yearMonth: ym,
         legalOvertimeMinutes: breakdown.totalLegalOvertimeMinutes,

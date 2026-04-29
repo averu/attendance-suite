@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useUpdateMemberWorkProfile } from '../mutations'
-import type { Member } from '../types'
+import { LABOR_CATEGORY_LABEL } from '../types'
+import type { LaborCategory, Member } from '../types'
 import {
   Card,
   CardContent,
@@ -13,6 +14,13 @@ import {
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/ui/select'
 
 /**
  * 管理者がメンバーの労務情報 (雇入日・週所定日数・週所定時間) を編集する Card。
@@ -30,6 +38,9 @@ export function MemberWorkProfileForm({ member }: { member: Member }) {
     member.weeklyScheduledHours == null
       ? ''
       : String(member.weeklyScheduledHours),
+  )
+  const [laborCategory, setLaborCategory] = useState<LaborCategory>(
+    member.laborCategory,
   )
 
   async function onSubmit(e: React.FormEvent) {
@@ -51,6 +62,7 @@ export function MemberWorkProfileForm({ member }: { member: Member }) {
         weeklyScheduledDays:
           parsedDays === null ? null : Math.floor(parsedDays),
         weeklyScheduledHours: parsedHours,
+        laborCategory,
       })
       toast.success('労務情報を保存しました')
     } catch (err) {
@@ -109,6 +121,32 @@ export function MemberWorkProfileForm({ member }: { member: Member }) {
                 30h 以上または週 5 日以上 → 一般労働者として付与
               </p>
             </div>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor={`category-${member.membershipId}`}>労基法区分</Label>
+            <Select
+              value={laborCategory}
+              onValueChange={(v) => setLaborCategory(v as LaborCategory)}
+            >
+              <SelectTrigger
+                id={`category-${member.membershipId}`}
+                className="w-72"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {(
+                  ['general', 'manager', 'discretionary', 'highly_skilled'] as const
+                ).map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {LABOR_CATEGORY_LABEL[c]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              管理監督者は時間外・休日割増対象外 (深夜のみ適用)。高プロは深夜含めて全免除。裁量労働制は本実装では一般と同じ集計。
+            </p>
           </div>
           <Button type="submit" disabled={update.isPending}>
             {update.isPending && <Loader2 className="animate-spin" />}
