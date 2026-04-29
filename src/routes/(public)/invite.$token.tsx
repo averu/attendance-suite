@@ -20,12 +20,25 @@ export const Route = createFileRoute('/(public)/invite/$token')({
         search: { redirect: location.href } as never,
       })
     }
-    if (context.auth.membership) {
-      throw redirect({ to: '/dashboard' })
-    }
+    // multi-org サポート: 既に他の組織に所属していてもこの招待は別組織への参加として受諾可能
   },
   component: InviteScreen,
 })
+
+const ERROR_LABEL: Record<string, string> = {
+  INVITATION_NOT_FOUND: '招待が見つかりません',
+  INVITATION_ALREADY_ACCEPTED: 'この招待は既に受諾されています',
+  INVITATION_EXPIRED: '招待の有効期限が切れています',
+  INVITATION_EMAIL_MISMATCH:
+    'この招待は別の Email 宛てです。正しいアカウントでサインインしてください',
+  ALREADY_MEMBER: 'すでにこの組織のメンバーです',
+  INVALID_INPUT: '入力に不備があります',
+  UNAUTHORIZED: 'サインインしてからやり直してください',
+}
+
+function localizeError(code: string): string {
+  return ERROR_LABEL[code] ?? `エラー: ${code}`
+}
 
 function InviteScreen() {
   const params = Route.useParams()
@@ -37,9 +50,10 @@ function InviteScreen() {
     setError(null)
     try {
       await accept.mutateAsync({ token: params.token })
-      await navigate({ to: '/dashboard' })
+      // multi-org: 切替が必要なケースもあるので reload で session 取り直す
+      await navigate({ to: '/dashboard', reloadDocument: true })
     } catch (e) {
-      setError((e as Error).message)
+      setError(localizeError((e as Error).message))
     }
   }
 

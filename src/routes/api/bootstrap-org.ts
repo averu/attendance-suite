@@ -1,8 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
-import { eq } from 'drizzle-orm'
+import { sql } from 'drizzle-orm'
 import { db } from '@/shared/lib/db.server'
-import { organizations, memberships } from '@/db/schema'
+import {
+  organizations,
+  memberships,
+  userPreferences,
+} from '@/db/schema'
 import { auth } from '@/features/auth/server/auth.server'
 
 const Input = z.object({
@@ -19,9 +23,9 @@ function slugify(s: string): string {
   )
 }
 
-// POST /api/bootstrap-org — サインアップ直後に呼ぶ。
-// session の user に新しい organization と owner membership を作る。
-// 既に membership がある場合はエラー (1 user = 1 org の MVP 制約)。
+// POST /api/bootstrap-org — 新しい組織を作って自分を owner として加入。
+// signup 直後にも呼ばれるし、追加組織作成 (multi-org) でも呼ばれる。
+// 作成後は active organization を新組織に切り替える。
 export const Route = createFileRoute('/api/bootstrap-org')({
   server: {
     handlers: {
@@ -36,16 +40,8 @@ export const Route = createFileRoute('/api/bootstrap-org')({
           return Response.json({ error: 'INVALID_INPUT' }, { status: 400 })
         }
 
-        const existing = await db
-          .select()
-          .from(memberships)
-          .where(eq(memberships.userId, session.user.id))
-          .limit(1)
-        if (existing.length > 0) {
-          return Response.json({ error: 'ALREADY_MEMBER' }, { status: 400 })
-        }
-
         const slug = `${slugify(parsed.data.name)}-${Date.now().toString(36)}`
+        const userId = session.user.id
         const result = await db.transaction(async (tx) => {
           const [org] = await tx
             .insert(organizations)
@@ -55,14 +51,23 @@ export const Route = createFileRoute('/api/bootstrap-org')({
               timezone: 'Asia/Tokyo',
             })
             .returning()
-          if (!org) {
-            throw new Error('organization insert failed')
-          }
+          if (!org) throw new Error('organization insert failed')
           await tx.insert(memberships).values({
             organizationId: org.id,
-            userId: session.user.id,
+            userId,
             role: 'owner',
           })
+          // active organization を新組織にセット
+          await tx
+            .insert(userPreferences)
+            .values({ userId, activeOrganizationId: org.id })
+            .onConflictDoUpdate({
+              target: userPreferences.userId,
+              set: {
+                activeOrganizationId: org.id,
+                updatedAt: sql`now()`,
+              },
+            })
           return org
         })
 

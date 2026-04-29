@@ -1,7 +1,8 @@
-import { eq } from 'drizzle-orm'
+import { asc, eq } from 'drizzle-orm'
 import { db } from '@/shared/lib/db.server'
-import { memberships, organizations } from '@/db/schema'
+import { memberships, organizations, userPreferences } from '@/db/schema'
 import { auth } from '@/features/auth/server/auth.server'
+import { pickActiveMembership } from './pickActiveMembership'
 
 export type ApiRole = 'member' | 'admin' | 'owner'
 
@@ -18,14 +19,27 @@ export type Resolved =
 export async function resolveCaller(request: Request): Promise<Resolved> {
   const session = await auth.api.getSession({ headers: request.headers })
   if (!session?.user) return { ok: false, status: 401, code: 'UNAUTHORIZED' }
+
+  // user の全 membership を取得 (作成順)
   const rows = await db
     .select({ m: memberships, o: organizations })
     .from(memberships)
     .innerJoin(organizations, eq(organizations.id, memberships.organizationId))
     .where(eq(memberships.userId, session.user.id))
+    .orderBy(asc(memberships.createdAt))
+  if (rows.length === 0) return { ok: false, status: 403, code: 'NO_MEMBERSHIP' }
+
+  // user_preference から active organization を取得
+  const prefRows = await db
+    .select()
+    .from(userPreferences)
+    .where(eq(userPreferences.userId, session.user.id))
     .limit(1)
-  const row = rows[0]
-  if (!row) return { ok: false, status: 403, code: 'NO_MEMBERSHIP' }
+  const activeOrgId = prefRows[0]?.activeOrganizationId ?? null
+
+  const picked = pickActiveMembership(rows, activeOrgId, (r) => r.m.organizationId)
+  if (!picked) return { ok: false, status: 403, code: 'NO_MEMBERSHIP' }
+
   return {
     ok: true,
     ctx: {
@@ -35,15 +49,15 @@ export async function resolveCaller(request: Request): Promise<Resolved> {
         name: session.user.name,
       },
       membership: {
-        id: row.m.id,
-        organizationId: row.m.organizationId,
-        role: row.m.role as ApiRole,
+        id: picked.m.id,
+        organizationId: picked.m.organizationId,
+        role: picked.m.role as ApiRole,
       },
       organization: {
-        id: row.o.id,
-        name: row.o.name,
-        slug: row.o.slug,
-        timezone: row.o.timezone,
+        id: picked.o.id,
+        name: picked.o.name,
+        slug: picked.o.slug,
+        timezone: picked.o.timezone,
       },
     },
   }

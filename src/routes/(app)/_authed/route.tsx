@@ -19,12 +19,22 @@ import {
   LogOut,
   Loader2,
   UserCircle,
+  LayoutDashboard,
 } from 'lucide-react'
 import { authClient } from '@/features/auth'
+import { useSwitchOrganization } from '@/features/organization'
 import { Button } from '@/shared/ui/button'
 import { Separator } from '@/shared/ui/separator'
 import { Badge } from '@/shared/ui/badge'
 import { ClientOnly } from '@/shared/ui/client-only'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/ui/select'
+import { toast } from 'sonner'
 import { cn } from '@/shared/lib/utils'
 
 export const Route = createFileRoute('/(app)/_authed')({
@@ -43,9 +53,12 @@ function AuthedLayout() {
   const { auth } = Route.useRouteContext()
   const navigate = useNavigate()
   const qc = useQueryClient()
+  const switchOrg = useSwitchOrganization()
   const isAdmin =
     auth.membership?.role === 'admin' || auth.membership?.role === 'owner'
   const isOwner = auth.membership?.role === 'owner'
+  const orgs = auth.availableOrganizations ?? []
+  const hasMultipleOrgs = orgs.length > 1
 
   async function onSignOut() {
     await authClient.signOut()
@@ -53,13 +66,45 @@ function AuthedLayout() {
     await navigate({ to: '/login' })
   }
 
+  async function onSwitchOrg(organizationId: string) {
+    if (organizationId === auth.organization?.id) return
+    try {
+      await switchOrg.mutateAsync({ organizationId })
+      toast.success('組織を切り替えました')
+      // session 再取得 (router は context.auth を再評価)
+      await navigate({ to: '/dashboard', reloadDocument: true })
+    } catch (e) {
+      toast.error((e as Error).message)
+    }
+  }
+
   return (
     <div className="grid min-h-screen grid-cols-[260px_1fr]">
       <aside className="bg-sidebar text-sidebar-foreground border-r flex flex-col p-4 gap-4">
         <div className="flex items-center gap-2">
           <Clock className="size-5" />
-          <span className="font-semibold">{auth.organization?.name}</span>
+          <span className="font-semibold truncate">
+            {auth.organization?.name}
+          </span>
         </div>
+        {hasMultipleOrgs && (
+          <Select
+            value={auth.organization?.id}
+            onValueChange={onSwitchOrg}
+            disabled={switchOrg.isPending}
+          >
+            <SelectTrigger className="w-full text-xs">
+              <SelectValue placeholder="組織を選択" />
+            </SelectTrigger>
+            <SelectContent>
+              {orgs.map((o) => (
+                <SelectItem key={o.id} value={o.id}>
+                  {o.name} ({o.role})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
         <div className="text-xs text-muted-foreground space-y-1">
           <div className="truncate">{auth.user?.email}</div>
           <Badge variant="secondary" className="capitalize">
@@ -92,6 +137,9 @@ function AuthedLayout() {
             <Separator />
             <p className="text-xs font-medium text-muted-foreground px-2">管理</p>
             <nav className="flex flex-col gap-1">
+              <NavLink to="/admin/today" icon={<LayoutDashboard className="size-4" />}>
+                今日の状況
+              </NavLink>
               <NavLink to="/admin/members" icon={<Users className="size-4" />}>
                 メンバー
               </NavLink>

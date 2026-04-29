@@ -5,6 +5,7 @@ import type {
   ChangeRoleInput,
   InviteInput,
   RemoveMemberInput,
+  RevokeInvitationInput,
   UpdateOrganizationInput,
 } from './schemas'
 
@@ -30,8 +31,21 @@ export function useAcceptInvitation() {
         '/api/organization/accept-invitation',
         input,
       ),
+    // accept handler 側で active organization も切替えているので、
+    // 直前 org のキャッシュは全部捨てる (switch-organization と同じ扱い)。
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['auth', 'session'] })
+      qc.clear()
+    },
+  })
+}
+
+export function useRevokeInvitation() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: RevokeInvitationInput) =>
+      postJson<{ ok: true }>('/api/organization/revoke-invitation', input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['organization', 'invitations'] })
     },
   })
 }
@@ -65,6 +79,46 @@ export function useUpdateOrganization() {
       postJson<{ ok: true }>('/api/organization/update', input),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['auth', 'session'] })
+    },
+  })
+}
+
+// active organization 切替。完了後は queryClient.clear() で全キャッシュを破棄してから
+// auth session を再取得する想定。
+export function useSwitchOrganization() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: { organizationId: string }) =>
+      postJson<{ ok: true }>('/api/me/switch-organization', input),
+    onSuccess: () => {
+      qc.clear()
+    },
+  })
+}
+
+// 新組織を作って自分を owner として加入。active organization も新組織になる。
+export function useCreateOrganization() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: { name: string }) =>
+      postJson<{ ok: true; organizationId: string }>(
+        '/api/bootstrap-org',
+        input,
+      ),
+    onSuccess: () => {
+      qc.clear()
+    },
+  })
+}
+
+// 指定組織から脱退。唯一の owner なら 400 で拒否される。
+export function useLeaveOrganization() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: { organizationId: string }) =>
+      postJson<{ ok: true }>('/api/me/leave-organization', input),
+    onSuccess: () => {
+      qc.clear()
     },
   })
 }

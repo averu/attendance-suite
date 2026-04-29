@@ -100,27 +100,62 @@ export type Post = z.infer<typeof PostSchema>
 
 ## ESLint で境界を強制
 
-`eslint.config.js`:
+`eslint.config.js` の `import/no-restricted-paths` で以下を禁じる:
+
+1. **server-only への client (components / hooks) からの import 禁止**
+   `features/<d>/server/` は HTTP / DB に直接触る層。client コードは必ず `queries.ts` 経由で間接的に呼ぶ。
+
+2. **UI route (`__root.tsx`, `(app)/**`, `(public)/**`) から `features/*/server/` への直接 import 禁止**
+   UI route のロジックは features 側へ追い出すための制約。
+   ⚠ **`src/routes/api/**` は server-only コンテキストなので例外として許可** している。
+   API route は `createFileRoute(p)({ server: { handlers } })` 内で features の handler を直接呼び出す server-only ファイルなので、`features/*/server/` を取り込むのが正しい。
+
+3. **`src/routes/api/**` は features の非公開ファイル直 import 禁止**
+   API route の例外を入れたぶん、入口を **`index.ts` / `schemas.ts` / `server/**`** の 3 経路に絞る zone を別途追加している。
+   これにより `routes/api/X.ts` から `features/<d>/canLeaveOrganization.ts` のような pure-function ファイルを直 import する抜け道を塞ぐ。
+   pure 関数を API route で使いたい場合は **必ず `features/<d>/index.ts` から再 export** する。
+
+4. **features 同士は `index.ts` 経由のみ** (= 他 feature の非公開ファイル直 import 禁止)
+   `import/no-restricted-paths` のグロブは「同一親ディレクトリ」を表現できないため、`features/` 配下の各ディレクトリ名を読み取って **feature ペアごと** に zone を生成している。
 
 ```js
-{
-  rules: {
-    'import/no-restricted-paths': ['error', {
-      zones: [
-        // server-only への client からの import 禁止
-        { target: './src/features/*/components', from: './src/features/*/server' },
-        { target: './src/features/*/hooks',      from: './src/features/*/server' },
-        { target: './src/routes',                from: './src/features/*/server' },
+// 各 features ペア (A != B) について、
+//   target: features/A/**         (= 自 feature 配下の任意ファイル)
+//   from:   features/B/!(index.*) (= 他 feature の非公開ファイル)
+// だけ禁じる。同一 feature 内の相対 import は影響しない。
+const crossFeatureZones = featureNames.flatMap((target) =>
+  featureNames
+    .filter((from) => from !== target)
+    .map((from) => ({
+      target: `./src/features/${target}`,
+      from: `./src/features/${from}/!(index.ts|index.tsx)`,
+    })),
+)
 
-        // features 間は index.ts 経由のみ
-        {
-          target: './src/features/!(_*)/!(index.ts|index.tsx)',
-          from: './src/features/!(_*)/!(index.ts|index.tsx)',
-        },
-      ],
-    }],
+// zones:
+[
+  { target: './src/features/*/components', from: './src/features/*/server' },
+  { target: './src/features/*/hooks',      from: './src/features/*/server' },
+  {
+    target: [
+      './src/routes/__root.tsx',
+      './src/routes/(app)/**',
+      './src/routes/(public)/**',
+    ],
+    from: './src/features/*/server',
   },
-}
+  // routes/api は features の非公開ファイルを触らない
+  // (index.ts / schemas.ts / server/** だけ許可)
+  {
+    target: './src/routes/api',
+    from: [
+      './src/features/*/!(index.ts|index.tsx|schemas.ts|server)',
+      './src/features/*/components/**',
+      './src/features/*/hooks/**',
+    ],
+  },
+  ...crossFeatureZones,
+]
 ```
 
 ## features 昇格ルール

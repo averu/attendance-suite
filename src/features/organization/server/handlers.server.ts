@@ -1,4 +1,4 @@
-import { and, eq, isNull } from 'drizzle-orm'
+import { and, eq, isNull, sql } from 'drizzle-orm'
 import { randomBytes } from 'node:crypto'
 import { db } from '@/shared/lib/db.server'
 import {
@@ -6,6 +6,7 @@ import {
   invitations,
   organizations,
   users,
+  userPreferences,
 } from '@/db/schema'
 import type {
   ApiCallerContext,
@@ -15,6 +16,7 @@ import type {
   ChangeRoleInput,
   InviteInput,
   RemoveMemberInput,
+  RevokeInvitationInput,
   UpdateOrganizationInput,
 } from '../schemas'
 import type { Member, Invitation } from '../types'
@@ -98,17 +100,7 @@ export async function acceptInvitationHandler(
   ctx: ApiCallerContext,
   input: AcceptInvitationInput,
 ): Promise<{ ok: true; organizationId: string }> {
-  // 既に組織所属しているなら拒否
-  const existing = await db
-    .select()
-    .from(memberships)
-    .where(eq(memberships.userId, ctx.user.id))
-    .limit(1)
-  if (existing.length > 0) {
-    const e = new Error('ALREADY_MEMBER')
-    ;(e as { code?: string }).code = 'ALREADY_MEMBER'
-    throw e
-  }
+  // multi-org: 既に同じ組織にメンバーシップがある場合のみ拒否、別組織なら OK
 
   const found = await db
     .select()
@@ -137,6 +129,23 @@ export async function acceptInvitationHandler(
     throw e
   }
 
+  // 同じ org に既に membership があるなら multi-org でも重複扱い
+  const dupExisting = await db
+    .select()
+    .from(memberships)
+    .where(
+      and(
+        eq(memberships.userId, ctx.user.id),
+        eq(memberships.organizationId, inv.organizationId),
+      ),
+    )
+    .limit(1)
+  if (dupExisting.length > 0) {
+    const e = new Error('ALREADY_MEMBER')
+    ;(e as { code?: string }).code = 'ALREADY_MEMBER'
+    throw e
+  }
+
   await db.transaction(async (tx) => {
     await tx.insert(memberships).values({
       organizationId: inv.organizationId,
@@ -147,6 +156,19 @@ export async function acceptInvitationHandler(
       .update(invitations)
       .set({ acceptedAt: new Date() })
       .where(eq(invitations.id, inv.id))
+    // 受諾した瞬間に active organization を新しい組織に切り替える。
+    // 「招待リンク → 参加 → そのままその組織のダッシュボード」が自然な期待動線で、
+    // クライアント側で switch-organization を別 RPC するより atomic に決まる。
+    await tx
+      .insert(userPreferences)
+      .values({ userId: ctx.user.id, activeOrganizationId: inv.organizationId })
+      .onConflictDoUpdate({
+        target: userPreferences.userId,
+        set: {
+          activeOrganizationId: inv.organizationId,
+          updatedAt: sql`now()`,
+        },
+      })
   })
 
   return { ok: true, organizationId: inv.organizationId }
@@ -176,6 +198,31 @@ export async function changeRoleHandler(
     .update(memberships)
     .set({ role: input.role, updatedAt: new Date() })
     .where(eq(memberships.id, input.membershipId))
+  return { ok: true }
+}
+
+export async function revokeInvitationHandler(
+  ctx: ApiCallerContext,
+  input: RevokeInvitationInput,
+): Promise<{ ok: true }> {
+  const [row] = await db
+    .select()
+    .from(invitations)
+    .where(eq(invitations.id, input.invitationId))
+    .limit(1)
+  // 他組織の招待は見せない: NOT_FOUND で透過させる (org id 漏洩を避ける)
+  if (!row || row.organizationId !== ctx.organization.id) {
+    const e = new Error('INVITATION_NOT_FOUND')
+    ;(e as { code?: string }).code = 'INVITATION_NOT_FOUND'
+    throw e
+  }
+  // 受諾済は membership として残っているので削除不可。膜外しはメンバー削除フローで行う
+  if (row.acceptedAt) {
+    const e = new Error('INVITATION_ALREADY_ACCEPTED')
+    ;(e as { code?: string }).code = 'INVITATION_ALREADY_ACCEPTED'
+    throw e
+  }
+  await db.delete(invitations).where(eq(invitations.id, input.invitationId))
   return { ok: true }
 }
 

@@ -21,11 +21,14 @@ import { Route as ApiSummaryMineRouteImport } from './routes/api/summary/mine'
 import { Route as ApiSummaryLockRouteImport } from './routes/api/summary/lock'
 import { Route as ApiSummaryCsvRouteImport } from './routes/api/summary/csv'
 import { Route as ApiOrganizationUpdateRouteImport } from './routes/api/organization/update'
+import { Route as ApiOrganizationRevokeInvitationRouteImport } from './routes/api/organization/revoke-invitation'
 import { Route as ApiOrganizationRemoveMemberRouteImport } from './routes/api/organization/remove-member'
 import { Route as ApiOrganizationMembersRouteImport } from './routes/api/organization/members'
 import { Route as ApiOrganizationInvitationsRouteImport } from './routes/api/organization/invitations'
 import { Route as ApiOrganizationChangeRoleRouteImport } from './routes/api/organization/change-role'
 import { Route as ApiOrganizationAcceptInvitationRouteImport } from './routes/api/organization/accept-invitation'
+import { Route as ApiMeSwitchOrganizationRouteImport } from './routes/api/me/switch-organization'
+import { Route as ApiMeLeaveOrganizationRouteImport } from './routes/api/me/leave-organization'
 import { Route as ApiLeaveRequestsRejectRouteImport } from './routes/api/leave-requests/reject'
 import { Route as ApiLeaveRequestsListOrgRouteImport } from './routes/api/leave-requests/list-org'
 import { Route as ApiLeaveRequestsListMineRouteImport } from './routes/api/leave-requests/list-mine'
@@ -51,6 +54,8 @@ import { Route as ApiAttendanceClockInRouteImport } from './routes/api/attendanc
 import { Route as ApiAttendanceBreakStartRouteImport } from './routes/api/attendance/break-start'
 import { Route as ApiAttendanceBreakEndRouteImport } from './routes/api/attendance/break-end'
 import { Route as ApiAttendanceAuditsRouteImport } from './routes/api/attendance/audits'
+import { Route as ApiAdminTodayRouteImport } from './routes/api/admin/today'
+import { Route as ApiAdminRecentTrendRouteImport } from './routes/api/admin/recent-trend'
 import { Route as publicInviteTokenRouteImport } from './routes/(public)/invite.$token'
 import { Route as appAuthedProfileRouteImport } from './routes/(app)/_authed/profile'
 import { Route as appAuthedDashboardRouteImport } from './routes/(app)/_authed/dashboard'
@@ -61,6 +66,7 @@ import { Route as appAuthedAttendanceIndexRouteImport } from './routes/(app)/_au
 import { Route as appAuthedRequestsNewRouteImport } from './routes/(app)/_authed/requests/new'
 import { Route as appAuthedLeavesNewRouteImport } from './routes/(app)/_authed/leaves/new'
 import { Route as appAuthedAttendanceDateRouteImport } from './routes/(app)/_authed/attendance/$date'
+import { Route as appAuthedAdminTodayRouteImport } from './routes/(app)/_authed/admin/today'
 import { Route as appAuthedAdminSummaryRouteImport } from './routes/(app)/_authed/admin/summary'
 import { Route as appAuthedAdminRequestsRouteImport } from './routes/(app)/_authed/admin/requests'
 import { Route as appAuthedAdminLeavesRouteImport } from './routes/(app)/_authed/admin/leaves'
@@ -131,6 +137,12 @@ const ApiOrganizationUpdateRoute = ApiOrganizationUpdateRouteImport.update({
   path: '/api/organization/update',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiOrganizationRevokeInvitationRoute =
+  ApiOrganizationRevokeInvitationRouteImport.update({
+    id: '/api/organization/revoke-invitation',
+    path: '/api/organization/revoke-invitation',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiOrganizationRemoveMemberRoute =
   ApiOrganizationRemoveMemberRouteImport.update({
     id: '/api/organization/remove-member',
@@ -160,6 +172,16 @@ const ApiOrganizationAcceptInvitationRoute =
     path: '/api/organization/accept-invitation',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiMeSwitchOrganizationRoute = ApiMeSwitchOrganizationRouteImport.update({
+  id: '/switch-organization',
+  path: '/switch-organization',
+  getParentRoute: () => ApiMeRoute,
+} as any)
+const ApiMeLeaveOrganizationRoute = ApiMeLeaveOrganizationRouteImport.update({
+  id: '/leave-organization',
+  path: '/leave-organization',
+  getParentRoute: () => ApiMeRoute,
+} as any)
 const ApiLeaveRequestsRejectRoute = ApiLeaveRequestsRejectRouteImport.update({
   id: '/api/leave-requests/reject',
   path: '/api/leave-requests/reject',
@@ -292,6 +314,16 @@ const ApiAttendanceAuditsRoute = ApiAttendanceAuditsRouteImport.update({
   path: '/api/attendance/audits',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminTodayRoute = ApiAdminTodayRouteImport.update({
+  id: '/api/admin/today',
+  path: '/api/admin/today',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminRecentTrendRoute = ApiAdminRecentTrendRouteImport.update({
+  id: '/api/admin/recent-trend',
+  path: '/api/admin/recent-trend',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const publicInviteTokenRoute = publicInviteTokenRouteImport.update({
   id: '/(public)/invite/$token',
   path: '/invite/$token',
@@ -342,6 +374,11 @@ const appAuthedAttendanceDateRoute = appAuthedAttendanceDateRouteImport.update({
   id: '/attendance/$date',
   path: '/attendance/$date',
   getParentRoute: () => appAuthedRouteRoute,
+} as any)
+const appAuthedAdminTodayRoute = appAuthedAdminTodayRouteImport.update({
+  id: '/today',
+  path: '/today',
+  getParentRoute: () => appAuthedAdminRouteRoute,
 } as any)
 const appAuthedAdminSummaryRoute = appAuthedAdminSummaryRouteImport.update({
   id: '/summary',
@@ -405,12 +442,14 @@ export interface FileRoutesByFullPath {
   '/login': typeof publicLoginRoute
   '/signup': typeof publicSignupRoute
   '/api/bootstrap-org': typeof ApiBootstrapOrgRoute
-  '/api/me': typeof ApiMeRoute
+  '/api/me': typeof ApiMeRouteWithChildren
   '/': typeof publicIndexRoute
   '/admin': typeof appAuthedAdminRouteRouteWithChildren
   '/dashboard': typeof appAuthedDashboardRoute
   '/profile': typeof appAuthedProfileRoute
   '/invite/$token': typeof publicInviteTokenRoute
+  '/api/admin/recent-trend': typeof ApiAdminRecentTrendRoute
+  '/api/admin/today': typeof ApiAdminTodayRoute
   '/api/attendance/audits': typeof ApiAttendanceAuditsRoute
   '/api/attendance/break-end': typeof ApiAttendanceBreakEndRoute
   '/api/attendance/break-start': typeof ApiAttendanceBreakStartRoute
@@ -436,11 +475,14 @@ export interface FileRoutesByFullPath {
   '/api/leave-requests/list-mine': typeof ApiLeaveRequestsListMineRoute
   '/api/leave-requests/list-org': typeof ApiLeaveRequestsListOrgRoute
   '/api/leave-requests/reject': typeof ApiLeaveRequestsRejectRoute
+  '/api/me/leave-organization': typeof ApiMeLeaveOrganizationRoute
+  '/api/me/switch-organization': typeof ApiMeSwitchOrganizationRoute
   '/api/organization/accept-invitation': typeof ApiOrganizationAcceptInvitationRoute
   '/api/organization/change-role': typeof ApiOrganizationChangeRoleRoute
   '/api/organization/invitations': typeof ApiOrganizationInvitationsRoute
   '/api/organization/members': typeof ApiOrganizationMembersRoute
   '/api/organization/remove-member': typeof ApiOrganizationRemoveMemberRoute
+  '/api/organization/revoke-invitation': typeof ApiOrganizationRevokeInvitationRoute
   '/api/organization/update': typeof ApiOrganizationUpdateRoute
   '/api/summary/csv': typeof ApiSummaryCsvRoute
   '/api/summary/lock': typeof ApiSummaryLockRoute
@@ -451,6 +493,7 @@ export interface FileRoutesByFullPath {
   '/admin/leaves': typeof appAuthedAdminLeavesRoute
   '/admin/requests': typeof appAuthedAdminRequestsRoute
   '/admin/summary': typeof appAuthedAdminSummaryRoute
+  '/admin/today': typeof appAuthedAdminTodayRoute
   '/attendance/$date': typeof appAuthedAttendanceDateRoute
   '/leaves/new': typeof appAuthedLeavesNewRoute
   '/requests/new': typeof appAuthedRequestsNewRoute
@@ -468,12 +511,14 @@ export interface FileRoutesByTo {
   '/login': typeof publicLoginRoute
   '/signup': typeof publicSignupRoute
   '/api/bootstrap-org': typeof ApiBootstrapOrgRoute
-  '/api/me': typeof ApiMeRoute
+  '/api/me': typeof ApiMeRouteWithChildren
   '/': typeof publicIndexRoute
   '/admin': typeof appAuthedAdminRouteRouteWithChildren
   '/dashboard': typeof appAuthedDashboardRoute
   '/profile': typeof appAuthedProfileRoute
   '/invite/$token': typeof publicInviteTokenRoute
+  '/api/admin/recent-trend': typeof ApiAdminRecentTrendRoute
+  '/api/admin/today': typeof ApiAdminTodayRoute
   '/api/attendance/audits': typeof ApiAttendanceAuditsRoute
   '/api/attendance/break-end': typeof ApiAttendanceBreakEndRoute
   '/api/attendance/break-start': typeof ApiAttendanceBreakStartRoute
@@ -499,11 +544,14 @@ export interface FileRoutesByTo {
   '/api/leave-requests/list-mine': typeof ApiLeaveRequestsListMineRoute
   '/api/leave-requests/list-org': typeof ApiLeaveRequestsListOrgRoute
   '/api/leave-requests/reject': typeof ApiLeaveRequestsRejectRoute
+  '/api/me/leave-organization': typeof ApiMeLeaveOrganizationRoute
+  '/api/me/switch-organization': typeof ApiMeSwitchOrganizationRoute
   '/api/organization/accept-invitation': typeof ApiOrganizationAcceptInvitationRoute
   '/api/organization/change-role': typeof ApiOrganizationChangeRoleRoute
   '/api/organization/invitations': typeof ApiOrganizationInvitationsRoute
   '/api/organization/members': typeof ApiOrganizationMembersRoute
   '/api/organization/remove-member': typeof ApiOrganizationRemoveMemberRoute
+  '/api/organization/revoke-invitation': typeof ApiOrganizationRevokeInvitationRoute
   '/api/organization/update': typeof ApiOrganizationUpdateRoute
   '/api/summary/csv': typeof ApiSummaryCsvRoute
   '/api/summary/lock': typeof ApiSummaryLockRoute
@@ -513,6 +561,7 @@ export interface FileRoutesByTo {
   '/admin/leaves': typeof appAuthedAdminLeavesRoute
   '/admin/requests': typeof appAuthedAdminRequestsRoute
   '/admin/summary': typeof appAuthedAdminSummaryRoute
+  '/admin/today': typeof appAuthedAdminTodayRoute
   '/attendance/$date': typeof appAuthedAttendanceDateRoute
   '/leaves/new': typeof appAuthedLeavesNewRoute
   '/requests/new': typeof appAuthedRequestsNewRoute
@@ -532,12 +581,14 @@ export interface FileRoutesById {
   '/(public)/login': typeof publicLoginRoute
   '/(public)/signup': typeof publicSignupRoute
   '/api/bootstrap-org': typeof ApiBootstrapOrgRoute
-  '/api/me': typeof ApiMeRoute
+  '/api/me': typeof ApiMeRouteWithChildren
   '/(public)/': typeof publicIndexRoute
   '/(app)/_authed/admin': typeof appAuthedAdminRouteRouteWithChildren
   '/(app)/_authed/dashboard': typeof appAuthedDashboardRoute
   '/(app)/_authed/profile': typeof appAuthedProfileRoute
   '/(public)/invite/$token': typeof publicInviteTokenRoute
+  '/api/admin/recent-trend': typeof ApiAdminRecentTrendRoute
+  '/api/admin/today': typeof ApiAdminTodayRoute
   '/api/attendance/audits': typeof ApiAttendanceAuditsRoute
   '/api/attendance/break-end': typeof ApiAttendanceBreakEndRoute
   '/api/attendance/break-start': typeof ApiAttendanceBreakStartRoute
@@ -563,11 +614,14 @@ export interface FileRoutesById {
   '/api/leave-requests/list-mine': typeof ApiLeaveRequestsListMineRoute
   '/api/leave-requests/list-org': typeof ApiLeaveRequestsListOrgRoute
   '/api/leave-requests/reject': typeof ApiLeaveRequestsRejectRoute
+  '/api/me/leave-organization': typeof ApiMeLeaveOrganizationRoute
+  '/api/me/switch-organization': typeof ApiMeSwitchOrganizationRoute
   '/api/organization/accept-invitation': typeof ApiOrganizationAcceptInvitationRoute
   '/api/organization/change-role': typeof ApiOrganizationChangeRoleRoute
   '/api/organization/invitations': typeof ApiOrganizationInvitationsRoute
   '/api/organization/members': typeof ApiOrganizationMembersRoute
   '/api/organization/remove-member': typeof ApiOrganizationRemoveMemberRoute
+  '/api/organization/revoke-invitation': typeof ApiOrganizationRevokeInvitationRoute
   '/api/organization/update': typeof ApiOrganizationUpdateRoute
   '/api/summary/csv': typeof ApiSummaryCsvRoute
   '/api/summary/lock': typeof ApiSummaryLockRoute
@@ -578,6 +632,7 @@ export interface FileRoutesById {
   '/(app)/_authed/admin/leaves': typeof appAuthedAdminLeavesRoute
   '/(app)/_authed/admin/requests': typeof appAuthedAdminRequestsRoute
   '/(app)/_authed/admin/summary': typeof appAuthedAdminSummaryRoute
+  '/(app)/_authed/admin/today': typeof appAuthedAdminTodayRoute
   '/(app)/_authed/attendance/$date': typeof appAuthedAttendanceDateRoute
   '/(app)/_authed/leaves/new': typeof appAuthedLeavesNewRoute
   '/(app)/_authed/requests/new': typeof appAuthedRequestsNewRoute
@@ -603,6 +658,8 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile'
     | '/invite/$token'
+    | '/api/admin/recent-trend'
+    | '/api/admin/today'
     | '/api/attendance/audits'
     | '/api/attendance/break-end'
     | '/api/attendance/break-start'
@@ -628,11 +685,14 @@ export interface FileRouteTypes {
     | '/api/leave-requests/list-mine'
     | '/api/leave-requests/list-org'
     | '/api/leave-requests/reject'
+    | '/api/me/leave-organization'
+    | '/api/me/switch-organization'
     | '/api/organization/accept-invitation'
     | '/api/organization/change-role'
     | '/api/organization/invitations'
     | '/api/organization/members'
     | '/api/organization/remove-member'
+    | '/api/organization/revoke-invitation'
     | '/api/organization/update'
     | '/api/summary/csv'
     | '/api/summary/lock'
@@ -643,6 +703,7 @@ export interface FileRouteTypes {
     | '/admin/leaves'
     | '/admin/requests'
     | '/admin/summary'
+    | '/admin/today'
     | '/attendance/$date'
     | '/leaves/new'
     | '/requests/new'
@@ -666,6 +727,8 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile'
     | '/invite/$token'
+    | '/api/admin/recent-trend'
+    | '/api/admin/today'
     | '/api/attendance/audits'
     | '/api/attendance/break-end'
     | '/api/attendance/break-start'
@@ -691,11 +754,14 @@ export interface FileRouteTypes {
     | '/api/leave-requests/list-mine'
     | '/api/leave-requests/list-org'
     | '/api/leave-requests/reject'
+    | '/api/me/leave-organization'
+    | '/api/me/switch-organization'
     | '/api/organization/accept-invitation'
     | '/api/organization/change-role'
     | '/api/organization/invitations'
     | '/api/organization/members'
     | '/api/organization/remove-member'
+    | '/api/organization/revoke-invitation'
     | '/api/organization/update'
     | '/api/summary/csv'
     | '/api/summary/lock'
@@ -705,6 +771,7 @@ export interface FileRouteTypes {
     | '/admin/leaves'
     | '/admin/requests'
     | '/admin/summary'
+    | '/admin/today'
     | '/attendance/$date'
     | '/leaves/new'
     | '/requests/new'
@@ -729,6 +796,8 @@ export interface FileRouteTypes {
     | '/(app)/_authed/dashboard'
     | '/(app)/_authed/profile'
     | '/(public)/invite/$token'
+    | '/api/admin/recent-trend'
+    | '/api/admin/today'
     | '/api/attendance/audits'
     | '/api/attendance/break-end'
     | '/api/attendance/break-start'
@@ -754,11 +823,14 @@ export interface FileRouteTypes {
     | '/api/leave-requests/list-mine'
     | '/api/leave-requests/list-org'
     | '/api/leave-requests/reject'
+    | '/api/me/leave-organization'
+    | '/api/me/switch-organization'
     | '/api/organization/accept-invitation'
     | '/api/organization/change-role'
     | '/api/organization/invitations'
     | '/api/organization/members'
     | '/api/organization/remove-member'
+    | '/api/organization/revoke-invitation'
     | '/api/organization/update'
     | '/api/summary/csv'
     | '/api/summary/lock'
@@ -769,6 +841,7 @@ export interface FileRouteTypes {
     | '/(app)/_authed/admin/leaves'
     | '/(app)/_authed/admin/requests'
     | '/(app)/_authed/admin/summary'
+    | '/(app)/_authed/admin/today'
     | '/(app)/_authed/attendance/$date'
     | '/(app)/_authed/leaves/new'
     | '/(app)/_authed/requests/new'
@@ -788,9 +861,11 @@ export interface RootRouteChildren {
   publicLoginRoute: typeof publicLoginRoute
   publicSignupRoute: typeof publicSignupRoute
   ApiBootstrapOrgRoute: typeof ApiBootstrapOrgRoute
-  ApiMeRoute: typeof ApiMeRoute
+  ApiMeRoute: typeof ApiMeRouteWithChildren
   publicIndexRoute: typeof publicIndexRoute
   publicInviteTokenRoute: typeof publicInviteTokenRoute
+  ApiAdminRecentTrendRoute: typeof ApiAdminRecentTrendRoute
+  ApiAdminTodayRoute: typeof ApiAdminTodayRoute
   ApiAttendanceAuditsRoute: typeof ApiAttendanceAuditsRoute
   ApiAttendanceBreakEndRoute: typeof ApiAttendanceBreakEndRoute
   ApiAttendanceBreakStartRoute: typeof ApiAttendanceBreakStartRoute
@@ -821,6 +896,7 @@ export interface RootRouteChildren {
   ApiOrganizationInvitationsRoute: typeof ApiOrganizationInvitationsRoute
   ApiOrganizationMembersRoute: typeof ApiOrganizationMembersRoute
   ApiOrganizationRemoveMemberRoute: typeof ApiOrganizationRemoveMemberRoute
+  ApiOrganizationRevokeInvitationRoute: typeof ApiOrganizationRevokeInvitationRoute
   ApiOrganizationUpdateRoute: typeof ApiOrganizationUpdateRoute
   ApiSummaryCsvRoute: typeof ApiSummaryCsvRoute
   ApiSummaryLockRoute: typeof ApiSummaryLockRoute
@@ -915,6 +991,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOrganizationUpdateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/organization/revoke-invitation': {
+      id: '/api/organization/revoke-invitation'
+      path: '/api/organization/revoke-invitation'
+      fullPath: '/api/organization/revoke-invitation'
+      preLoaderRoute: typeof ApiOrganizationRevokeInvitationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/organization/remove-member': {
       id: '/api/organization/remove-member'
       path: '/api/organization/remove-member'
@@ -949,6 +1032,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/organization/accept-invitation'
       preLoaderRoute: typeof ApiOrganizationAcceptInvitationRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/me/switch-organization': {
+      id: '/api/me/switch-organization'
+      path: '/switch-organization'
+      fullPath: '/api/me/switch-organization'
+      preLoaderRoute: typeof ApiMeSwitchOrganizationRouteImport
+      parentRoute: typeof ApiMeRoute
+    }
+    '/api/me/leave-organization': {
+      id: '/api/me/leave-organization'
+      path: '/leave-organization'
+      fullPath: '/api/me/leave-organization'
+      preLoaderRoute: typeof ApiMeLeaveOrganizationRouteImport
+      parentRoute: typeof ApiMeRoute
     }
     '/api/leave-requests/reject': {
       id: '/api/leave-requests/reject'
@@ -1125,6 +1222,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAttendanceAuditsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/today': {
+      id: '/api/admin/today'
+      path: '/api/admin/today'
+      fullPath: '/api/admin/today'
+      preLoaderRoute: typeof ApiAdminTodayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/recent-trend': {
+      id: '/api/admin/recent-trend'
+      path: '/api/admin/recent-trend'
+      fullPath: '/api/admin/recent-trend'
+      preLoaderRoute: typeof ApiAdminRecentTrendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/(public)/invite/$token': {
       id: '/(public)/invite/$token'
       path: '/invite/$token'
@@ -1194,6 +1305,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/attendance/$date'
       preLoaderRoute: typeof appAuthedAttendanceDateRouteImport
       parentRoute: typeof appAuthedRouteRoute
+    }
+    '/(app)/_authed/admin/today': {
+      id: '/(app)/_authed/admin/today'
+      path: '/today'
+      fullPath: '/admin/today'
+      preLoaderRoute: typeof appAuthedAdminTodayRouteImport
+      parentRoute: typeof appAuthedAdminRouteRoute
     }
     '/(app)/_authed/admin/summary': {
       id: '/(app)/_authed/admin/summary'
@@ -1291,6 +1409,7 @@ interface appAuthedAdminRouteRouteChildren {
   appAuthedAdminLeavesRoute: typeof appAuthedAdminLeavesRoute
   appAuthedAdminRequestsRoute: typeof appAuthedAdminRequestsRoute
   appAuthedAdminSummaryRoute: typeof appAuthedAdminSummaryRoute
+  appAuthedAdminTodayRoute: typeof appAuthedAdminTodayRoute
   appAuthedAdminMembersIndexRoute: typeof appAuthedAdminMembersIndexRoute
   appAuthedAdminMembersUserIdDateRoute: typeof appAuthedAdminMembersUserIdDateRoute
   appAuthedAdminMembersUserIdIndexRoute: typeof appAuthedAdminMembersUserIdIndexRoute
@@ -1302,6 +1421,7 @@ const appAuthedAdminRouteRouteChildren: appAuthedAdminRouteRouteChildren = {
   appAuthedAdminLeavesRoute: appAuthedAdminLeavesRoute,
   appAuthedAdminRequestsRoute: appAuthedAdminRequestsRoute,
   appAuthedAdminSummaryRoute: appAuthedAdminSummaryRoute,
+  appAuthedAdminTodayRoute: appAuthedAdminTodayRoute,
   appAuthedAdminMembersIndexRoute: appAuthedAdminMembersIndexRoute,
   appAuthedAdminMembersUserIdDateRoute: appAuthedAdminMembersUserIdDateRoute,
   appAuthedAdminMembersUserIdIndexRoute: appAuthedAdminMembersUserIdIndexRoute,
@@ -1338,14 +1458,28 @@ const appAuthedRouteRouteWithChildren = appAuthedRouteRoute._addFileChildren(
   appAuthedRouteRouteChildren,
 )
 
+interface ApiMeRouteChildren {
+  ApiMeLeaveOrganizationRoute: typeof ApiMeLeaveOrganizationRoute
+  ApiMeSwitchOrganizationRoute: typeof ApiMeSwitchOrganizationRoute
+}
+
+const ApiMeRouteChildren: ApiMeRouteChildren = {
+  ApiMeLeaveOrganizationRoute: ApiMeLeaveOrganizationRoute,
+  ApiMeSwitchOrganizationRoute: ApiMeSwitchOrganizationRoute,
+}
+
+const ApiMeRouteWithChildren = ApiMeRoute._addFileChildren(ApiMeRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   appAuthedRouteRoute: appAuthedRouteRouteWithChildren,
   publicLoginRoute: publicLoginRoute,
   publicSignupRoute: publicSignupRoute,
   ApiBootstrapOrgRoute: ApiBootstrapOrgRoute,
-  ApiMeRoute: ApiMeRoute,
+  ApiMeRoute: ApiMeRouteWithChildren,
   publicIndexRoute: publicIndexRoute,
   publicInviteTokenRoute: publicInviteTokenRoute,
+  ApiAdminRecentTrendRoute: ApiAdminRecentTrendRoute,
+  ApiAdminTodayRoute: ApiAdminTodayRoute,
   ApiAttendanceAuditsRoute: ApiAttendanceAuditsRoute,
   ApiAttendanceBreakEndRoute: ApiAttendanceBreakEndRoute,
   ApiAttendanceBreakStartRoute: ApiAttendanceBreakStartRoute,
@@ -1376,6 +1510,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiOrganizationInvitationsRoute: ApiOrganizationInvitationsRoute,
   ApiOrganizationMembersRoute: ApiOrganizationMembersRoute,
   ApiOrganizationRemoveMemberRoute: ApiOrganizationRemoveMemberRoute,
+  ApiOrganizationRevokeInvitationRoute: ApiOrganizationRevokeInvitationRoute,
   ApiOrganizationUpdateRoute: ApiOrganizationUpdateRoute,
   ApiSummaryCsvRoute: ApiSummaryCsvRoute,
   ApiSummaryLockRoute: ApiSummaryLockRoute,

@@ -22,6 +22,13 @@
       "when": 1777403486887,
       "tag": "0002_daily_azazel",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1777418056188,
+      "tag": "0003_minor_starfox",
+      "breakpoints": true
     }
   ]
 }

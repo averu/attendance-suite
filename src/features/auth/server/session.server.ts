@@ -11,7 +11,12 @@ export const getSessionHandler = async (): Promise<AuthState> => {
   const request = getRequest()
   const session = await auth.api.getSession({ headers: request.headers })
   if (!session?.user) {
-    return { user: null, membership: null, organization: null }
+    return {
+      user: null,
+      membership: null,
+      organization: null,
+      availableOrganizations: [],
+    }
   }
   const rows = await db
     .select({
@@ -40,6 +45,8 @@ export const getSessionHandler = async (): Promise<AuthState> => {
           timezone: row.o.timezone,
         }
       : null,
+    // この legacy handler は使われていないが型整合のため空配列
+    availableOrganizations: [],
   }
 }
 

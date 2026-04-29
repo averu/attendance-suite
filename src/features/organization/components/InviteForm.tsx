@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { Copy, Loader2, Send } from 'lucide-react'
+import { Copy, Loader2, Send, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { useInviteMember } from '../mutations'
+import { useInviteMember, useRevokeInvitation } from '../mutations'
 import { organizationQueries } from '../queries'
 import type { InviteRole } from '../types'
 import { Button } from '@/shared/ui/button'
@@ -30,7 +30,19 @@ export function InviteForm() {
   const [role, setRole] = useState<InviteRole>('member')
   const [issued, setIssued] = useState<string | null>(null)
   const invite = useInviteMember()
+  const revoke = useRevokeInvitation()
   const { data: invitations } = useSuspenseQuery(organizationQueries.invitations())
+
+  function onRevoke(invitationId: string, email: string) {
+    if (!confirm(`${email} 宛の招待を削除しますか？`)) return
+    revoke.mutate(
+      { invitationId },
+      {
+        onSuccess: () => toast.success('招待を削除しました'),
+        onError: (e) => toast.error((e as Error).message),
+      },
+    )
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -141,6 +153,15 @@ export function InviteForm() {
                     <span className="text-muted-foreground text-xs">
                       {new Date(i.expiresAt).toLocaleDateString('ja-JP')} まで
                     </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`${i.email} 宛の招待を削除`}
+                      disabled={revoke.isPending}
+                      onClick={() => onRevoke(i.id, i.email)}
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
                   </div>
                 </li>
               ))}

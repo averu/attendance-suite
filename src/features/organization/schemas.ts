@@ -26,8 +26,13 @@ export const AcceptInvitationInputSchema = z.object({
   token: z.string().min(1),
 })
 
+export const RevokeInvitationInputSchema = z.object({
+  invitationId: z.string().uuid(),
+})
+
 export type InviteInput = z.infer<typeof InviteInputSchema>
 export type ChangeRoleInput = z.infer<typeof ChangeRoleInputSchema>
 export type RemoveMemberInput = z.infer<typeof RemoveMemberInputSchema>
 export type UpdateOrganizationInput = z.infer<typeof UpdateOrganizationInputSchema>
 export type AcceptInvitationInput = z.infer<typeof AcceptInvitationInputSchema>
+export type RevokeInvitationInput = z.infer<typeof RevokeInvitationInputSchema>

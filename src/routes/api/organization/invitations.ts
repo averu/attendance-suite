@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { resolveCaller, requireAdmin, requireOwner } from '@/shared/server/apiAuth'
+import { resolveCaller, requireOwner } from '@/shared/server/apiAuth'
 import {
   inviteMemberHandler,
   listInvitationsHandler,
@@ -9,10 +9,12 @@ import { InviteInputSchema } from '@/features/organization/schemas'
 export const Route = createFileRoute('/api/organization/invitations')({
   server: {
     handlers: {
+      // 招待は owner だけが発行できる仕様なので、一覧も owner に揃える
+      // (admin に閲覧権限を持たせない)。
       GET: async ({ request }) => {
         const r = await resolveCaller(request)
         if (!r.ok) return Response.json({ error: r.code }, { status: r.status })
-        const guard = requireAdmin(r.ctx)
+        const guard = requireOwner(r.ctx)
         if (guard) return guard
         const invitations = await listInvitationsHandler(r.ctx)
         return Response.json({ invitations })

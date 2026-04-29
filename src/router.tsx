@@ -20,7 +20,12 @@ export function getRouter() {
     context: {
       queryClient,
       // __root の beforeLoad で session を hydrate する
-      auth: { user: null, membership: null, organization: null },
+      auth: {
+        user: null,
+        membership: null,
+        organization: null,
+        availableOrganizations: [],
+      },
     },
     defaultPreload: 'intent',
     defaultPreloadStaleTime: 0,
