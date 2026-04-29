@@ -12,9 +12,16 @@ import {
 import type { ApiCallerContext } from '@/shared/server/apiAuth'
 import type { LeaveType } from '@/features/leave-request'
 import { scheduledWorkingDays } from '@/features/holidays'
+import {
+  computeMonthlyBreakdown,
+  deriveWorkSegments,
+  isLegalHoliday,
+  totalMinutes,
+  type BreakSegment,
+  type DayInput,
+} from '@/features/labor'
 import type { MemberMonthlySummary, OrgMonthlySummary } from '../types'
 import { countLeaveDaysInMonth, type ApprovedLeaveSlice } from '../leaveCount'
-import { dailyOvertimeMinutes } from '../overtime'
 
 function nextMonthFirstDay(yearMonth: string): string {
   const [y, m] = yearMonth.split('-').map(Number)
@@ -94,10 +101,18 @@ export async function getOrgMonthlySummaryHandler(
     entryIds.length > 0
       ? await db.select().from(breaks).where(inArray(breaks.timeEntryId, entryIds))
       : []
-  const breaksByEntry = new Map<string, number>()
+  // 月次サマリ用の合計分 (互換) と、labor 計算用の生 break セグメント配列の両方を保持。
+  const breakMinutesByEntry = new Map<string, number>()
+  const breakSegmentsByEntry = new Map<string, BreakSegment[]>()
   for (const b of breakRows) {
     const m = diffMinutes(b.startAt, b.endAt)
-    breaksByEntry.set(b.timeEntryId, (breaksByEntry.get(b.timeEntryId) ?? 0) + m)
+    breakMinutesByEntry.set(
+      b.timeEntryId,
+      (breakMinutesByEntry.get(b.timeEntryId) ?? 0) + m,
+    )
+    const arr = breakSegmentsByEntry.get(b.timeEntryId) ?? []
+    arr.push({ startAt: b.startAt, endAt: b.endAt })
+    breakSegmentsByEntry.set(b.timeEntryId, arr)
   }
 
   const lockRows = await db
@@ -141,22 +156,39 @@ export async function getOrgMonthlySummaryHandler(
     leavesByUser.set(lv.requesterUserId, arr)
   }
 
+  const fallbackEnd = new Date()
+  const legalHolidayPolicy = {
+    legalHolidayDow: ctx.organization.legalHolidayDow,
+  }
+
   const members: MemberMonthlySummary[] = memberRows.map((r) => {
     const entries = entriesByUser.get(r.u.id) ?? []
     let workingMinutes = 0
     let breakMinutes = 0
     let workingDays = 0
-    let overtimeMinutes = 0
+    const dayInputs: DayInput[] = []
     for (const e of entries) {
       if (!e.clockInAt) continue
-      const total = diffMinutes(e.clockInAt, e.clockOutAt)
-      const bm = breaksByEntry.get(e.id) ?? 0
-      const dayWorking = Math.max(0, total - bm)
+      const segs = deriveWorkSegments(
+        { clockInAt: e.clockInAt, clockOutAt: e.clockOutAt },
+        breakSegmentsByEntry.get(e.id) ?? [],
+        fallbackEnd,
+      )
+      const dayWorking = totalMinutes(segs)
       workingMinutes += dayWorking
-      breakMinutes += bm
+      breakMinutes += breakMinutesByEntry.get(e.id) ?? 0
       workingDays += 1
-      overtimeMinutes += dailyOvertimeMinutes(dayWorking)
+      dayInputs.push({
+        workDate: e.workDate,
+        workSegments: segs,
+        // 法定休日判定は workDate (JST) の曜日を見る
+        isLegalHoliday: isLegalHoliday(
+          new Date(`${e.workDate}T00:00:00+09:00`),
+          legalHolidayPolicy,
+        ),
+      })
     }
+    const breakdown = computeMonthlyBreakdown(dayInputs)
     const { paidLeaveDays, otherLeaveDays } = countLeaveDaysInMonth(
       leavesByUser.get(r.u.id) ?? [],
       yearMonth,
@@ -168,9 +200,14 @@ export async function getOrgMonthlySummaryHandler(
       workingDays,
       workingMinutes,
       breakMinutes,
-      overtimeMinutes,
+      // legacy 互換: legalOvertime と同じ値を出す
+      overtimeMinutes: breakdown.totalLegalOvertimeMinutes,
       paidLeaveDays,
       otherLeaveDays,
+      legalOvertimeMinutes: breakdown.totalLegalOvertimeMinutes,
+      legalOvertimeOver60Minutes: breakdown.legalOvertimeOver60Minutes,
+      lateNightMinutes: breakdown.totalLateNightMinutes,
+      legalHolidayWorkedMinutes: breakdown.legalHolidayWorkedMinutes,
     }
   })
 

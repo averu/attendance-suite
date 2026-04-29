@@ -43,6 +43,9 @@ export const getSessionHandler = async (): Promise<AuthState> => {
           name: row.o.name,
           slug: row.o.slug,
           timezone: row.o.timezone,
+          dailyScheduledMinutes: row.o.dailyScheduledMinutes,
+          weeklyScheduledMinutes: row.o.weeklyScheduledMinutes,
+          legalHolidayDow: row.o.legalHolidayDow,
         }
       : null,
     // この legacy handler は使われていないが型整合のため空配列

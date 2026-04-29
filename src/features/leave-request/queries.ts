@@ -1,6 +1,10 @@
 import { queryOptions } from '@tanstack/react-query'
 import { getJson } from '@/shared/lib/apiClient'
-import type { LeaveRequestDTO } from './types'
+import type {
+  LeaveRequestDTO,
+  OrgPaidLeaveObligationDTO,
+  PaidLeaveBalanceDTO,
+} from './types'
 
 export const leaveRequestQueries = {
   mine: () =>
@@ -22,6 +26,23 @@ export const leaveRequestQueries = {
           `/api/leave-requests/list-org${qs ? `?${qs}` : ''}`,
         )
       },
+      select: (d) => d.items,
+    }),
+  myBalance: (asOf?: string) =>
+    queryOptions({
+      queryKey: ['leave-requests', 'my-balance', asOf ?? 'today'],
+      queryFn: () =>
+        getJson<PaidLeaveBalanceDTO>(
+          `/api/leave-requests/balance${asOf ? `?asOf=${asOf}` : ''}`,
+        ),
+    }),
+  orgObligations: (asOf?: string) =>
+    queryOptions({
+      queryKey: ['leave-requests', 'org-obligations', asOf ?? 'today'],
+      queryFn: () =>
+        getJson<{ items: OrgPaidLeaveObligationDTO[] }>(
+          `/api/admin/leave-obligations${asOf ? `?asOf=${asOf}` : ''}`,
+        ),
       select: (d) => d.items,
     }),
 }

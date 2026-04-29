@@ -9,7 +9,15 @@ export type ApiRole = 'member' | 'admin' | 'owner'
 export type ApiCallerContext = {
   user: { id: string; email: string; name: string }
   membership: { id: string; organizationId: string; role: ApiRole }
-  organization: { id: string; name: string; slug: string; timezone: string }
+  organization: {
+    id: string
+    name: string
+    slug: string
+    timezone: string
+    dailyScheduledMinutes: number
+    weeklyScheduledMinutes: number
+    legalHolidayDow: number
+  }
 }
 
 export type Resolved =
@@ -58,6 +66,9 @@ export async function resolveCaller(request: Request): Promise<Resolved> {
         name: picked.o.name,
         slug: picked.o.slug,
         timezone: picked.o.timezone,
+        dailyScheduledMinutes: picked.o.dailyScheduledMinutes,
+        weeklyScheduledMinutes: picked.o.weeklyScheduledMinutes,
+        legalHolidayDow: picked.o.legalHolidayDow,
       },
     },
   }

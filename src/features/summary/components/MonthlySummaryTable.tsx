@@ -98,12 +98,29 @@ export function MonthlySummaryTable({ yearMonth }: { yearMonth: string }) {
             <TableRow>
               <TableHead>名前</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead className="text-right">出勤日数</TableHead>
+              <TableHead className="text-right">出勤</TableHead>
               <TableHead className="text-right">有給</TableHead>
               <TableHead className="text-right">他休暇</TableHead>
-              <TableHead className="text-right">労働時間</TableHead>
-              <TableHead className="text-right">残業</TableHead>
-              <TableHead className="text-right">休憩時間</TableHead>
+              <TableHead className="text-right">労働</TableHead>
+              <TableHead className="text-right" title="法定外残業 (8h 超 / 40h 超 の合計)">
+                法定外
+              </TableHead>
+              <TableHead
+                className="text-right"
+                title="月 60h 超の法定外残業 (50% 割増対象)"
+              >
+                60h超
+              </TableHead>
+              <TableHead className="text-right" title="深夜帯 (22:00-翌5:00)">
+                深夜
+              </TableHead>
+              <TableHead
+                className="text-right"
+                title="法定休日労働 (35% 割増対象)"
+              >
+                法休
+              </TableHead>
+              <TableHead className="text-right">休憩</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -122,9 +139,26 @@ export function MonthlySummaryTable({ yearMonth }: { yearMonth: string }) {
                   {fmtMinutes(m.workingMinutes)}
                 </TableCell>
                 <TableCell className="text-right font-mono">
-                  <span className={m.overtimeMinutes > 0 ? 'text-destructive' : ''}>
-                    {fmtMinutes(m.overtimeMinutes)}
+                  <span
+                    className={m.legalOvertimeMinutes > 0 ? 'text-destructive' : ''}
+                  >
+                    {fmtMinutes(m.legalOvertimeMinutes)}
                   </span>
+                </TableCell>
+                <TableCell className="text-right font-mono">
+                  <span
+                    className={
+                      m.legalOvertimeOver60Minutes > 0 ? 'text-destructive' : ''
+                    }
+                  >
+                    {fmtMinutes(m.legalOvertimeOver60Minutes)}
+                  </span>
+                </TableCell>
+                <TableCell className="text-right font-mono">
+                  {fmtMinutes(m.lateNightMinutes)}
+                </TableCell>
+                <TableCell className="text-right font-mono">
+                  {fmtMinutes(m.legalHolidayWorkedMinutes)}
                 </TableCell>
                 <TableCell className="text-right font-mono">
                   {fmtMinutes(m.breakMinutes)}

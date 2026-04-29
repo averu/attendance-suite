@@ -4,7 +4,10 @@ import { ArrowLeft, Loader2 } from 'lucide-react'
 import { z } from 'zod'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { AttendanceMonthTable } from '@/features/attendance'
-import { organizationQueries } from '@/features/organization'
+import {
+  MemberWorkProfileForm,
+  organizationQueries,
+} from '@/features/organization'
 import { thisMonth } from '@/shared/lib/datetime'
 import { Button } from '@/shared/ui/button'
 import { Badge } from '@/shared/ui/badge'
@@ -54,10 +57,27 @@ function MemberAttendanceScreen() {
           </div>
         }
       >
+        <MemberWorkProfileSection userId={params.userId} />
+      </Suspense>
+      <Suspense
+        fallback={
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="size-4 animate-spin" />
+            読み込み中…
+          </div>
+        }
+      >
         <AttendanceMonthTable yearMonth={yearMonth} userId={params.userId} />
       </Suspense>
     </section>
   )
+}
+
+function MemberWorkProfileSection({ userId }: { userId: string }) {
+  const { data: members } = useSuspenseQuery(organizationQueries.members())
+  const m = members.find((mm) => mm.userId === userId)
+  if (!m) return null
+  return <MemberWorkProfileForm member={m} />
 }
 
 function MemberHeader({

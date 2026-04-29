@@ -2,6 +2,12 @@ import { describe, expect, it } from 'vitest'
 import { searchMembers } from './searchMembers'
 import type { Member } from './types'
 
+const stubProfile = {
+  hireDate: null,
+  weeklyScheduledDays: null,
+  weeklyScheduledHours: null,
+} as const
+
 const members: Member[] = [
   {
     membershipId: 'm1',
@@ -10,6 +16,7 @@ const members: Member[] = [
     email: 'taro@example.com',
     role: 'admin',
     joinedAt: '2026-01-01T00:00:00Z',
+    ...stubProfile,
   },
   {
     membershipId: 'm2',
@@ -18,6 +25,7 @@ const members: Member[] = [
     email: 'min@acme.co',
     role: 'member',
     joinedAt: '2026-02-01T00:00:00Z',
+    ...stubProfile,
   },
   {
     membershipId: 'm3',
@@ -26,6 +34,7 @@ const members: Member[] = [
     email: 'bob@example.com',
     role: 'owner',
     joinedAt: '2025-12-01T00:00:00Z',
+    ...stubProfile,
   },
 ]
 

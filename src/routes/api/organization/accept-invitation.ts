@@ -28,7 +28,15 @@ export const Route = createFileRoute('/api/organization/accept-invitation')({
               },
               // handler 内では user と input.token しか参照しないので残りはダミー
               membership: { id: '', organizationId: '', role: 'member' },
-              organization: { id: '', name: '', slug: '', timezone: '' },
+              organization: {
+                id: '',
+                name: '',
+                slug: '',
+                timezone: '',
+                dailyScheduledMinutes: 0,
+                weeklyScheduledMinutes: 0,
+                legalHolidayDow: 0,
+              },
             },
             parsed.data,
           )

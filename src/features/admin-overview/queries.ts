@@ -1,6 +1,6 @@
 import { queryOptions } from '@tanstack/react-query'
 import { getJson } from '@/shared/lib/apiClient'
-import type { OrgTodayStatus } from './types'
+import type { OrgSaburokuResponseDTO, OrgTodayStatus } from './types'
 import type { DailyTrendPoint } from './recentTrend'
 
 export const adminOverviewQueries = {
@@ -19,5 +19,14 @@ export const adminOverviewQueries = {
         ),
       select: (d) => d.days,
       staleTime: 60_000,
+    }),
+  saburoku: (yearMonth?: string) =>
+    queryOptions({
+      queryKey: ['admin-overview', 'saburoku', yearMonth ?? 'this-month'],
+      queryFn: () =>
+        getJson<OrgSaburokuResponseDTO>(
+          `/api/admin/saburoku${yearMonth ? `?yearMonth=${yearMonth}` : ''}`,
+        ),
+      staleTime: 5 * 60_000, // 重い計算なので 5 分キャッシュ
     }),
 }

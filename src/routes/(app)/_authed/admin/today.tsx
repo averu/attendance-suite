@@ -1,7 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Suspense } from 'react'
 import { Loader2 } from 'lucide-react'
-import { OrgTodayDashboard, RecentTrendCard } from '@/features/admin-overview'
+import {
+  OrgSaburokuCard,
+  OrgTodayDashboard,
+  RecentTrendCard,
+} from '@/features/admin-overview'
 
 export const Route = createFileRoute('/(app)/_authed/admin/today')({
   component: AdminTodayScreen,
@@ -35,6 +39,16 @@ function AdminTodayScreen() {
         }
       >
         <RecentTrendCard />
+      </Suspense>
+      <Suspense
+        fallback={
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="size-4 animate-spin" />
+            36 協定アセスメントを集計中…
+          </div>
+        }
+      >
+        <OrgSaburokuCard />
       </Suspense>
     </section>
   )

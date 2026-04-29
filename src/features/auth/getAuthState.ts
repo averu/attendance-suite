@@ -77,6 +77,9 @@ export const getAuthState = createIsomorphicFn()
             name: picked.o.name,
             slug: picked.o.slug,
             timezone: picked.o.timezone,
+            dailyScheduledMinutes: picked.o.dailyScheduledMinutes,
+            weeklyScheduledMinutes: picked.o.weeklyScheduledMinutes,
+            legalHolidayDow: picked.o.legalHolidayDow,
           }
         : null,
       availableOrganizations,

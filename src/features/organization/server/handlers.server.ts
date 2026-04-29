@@ -17,6 +17,7 @@ import type {
   InviteInput,
   RemoveMemberInput,
   RevokeInvitationInput,
+  UpdateMemberWorkProfileInput,
   UpdateOrganizationInput,
 } from '../schemas'
 import type { Member, Invitation } from '../types'
@@ -39,6 +40,10 @@ export async function listMembersHandler(ctx: ApiCallerContext): Promise<Member[
     name: r.u.name,
     role: r.m.role as Member['role'],
     joinedAt: r.m.createdAt.toISOString(),
+    hireDate: r.m.hireDate ?? null,
+    weeklyScheduledDays: r.m.weeklyScheduledDays ?? null,
+    weeklyScheduledHours:
+      r.m.weeklyScheduledHours == null ? null : Number(r.m.weeklyScheduledHours),
   }))
 }
 
@@ -249,13 +254,54 @@ export async function removeMemberHandler(
   return { ok: true }
 }
 
+/**
+ * メンバーの労務情報 (雇入日・週所定) を更新する。owner / admin が呼ぶ。
+ * NOT_FOUND: 他組織の membership は触らない。
+ * weeklyScheduledHours は numeric カラムなので文字列で渡してもよいが、ここでは number → string 変換。
+ */
+export async function updateMemberWorkProfileHandler(
+  ctx: ApiCallerContext,
+  input: UpdateMemberWorkProfileInput,
+): Promise<{ ok: true }> {
+  const [row] = await db
+    .select()
+    .from(memberships)
+    .where(eq(memberships.id, input.membershipId))
+    .limit(1)
+  if (!row || row.organizationId !== ctx.organization.id) {
+    const e = new Error('NOT_FOUND')
+    ;(e as { code?: string }).code = 'NOT_FOUND'
+    throw e
+  }
+  await db
+    .update(memberships)
+    .set({
+      hireDate: input.hireDate,
+      weeklyScheduledDays: input.weeklyScheduledDays,
+      weeklyScheduledHours:
+        input.weeklyScheduledHours == null
+          ? null
+          : String(input.weeklyScheduledHours),
+      updatedAt: new Date(),
+    })
+    .where(eq(memberships.id, input.membershipId))
+  return { ok: true }
+}
+
 export async function updateOrganizationHandler(
   ctx: ApiCallerContext,
   input: UpdateOrganizationInput,
 ): Promise<{ ok: true }> {
   await db
     .update(organizations)
-    .set({ name: input.name, timezone: input.timezone, updatedAt: new Date() })
+    .set({
+      name: input.name,
+      timezone: input.timezone,
+      dailyScheduledMinutes: input.dailyScheduledMinutes,
+      weeklyScheduledMinutes: input.weeklyScheduledMinutes,
+      legalHolidayDow: input.legalHolidayDow,
+      updatedAt: new Date(),
+    })
     .where(eq(organizations.id, ctx.organization.id))
   return { ok: true }
 }

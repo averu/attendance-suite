@@ -12,7 +12,15 @@ export type AvailableOrganization = {
 export type AuthState = {
   user: { id: string; email: string; name: string } | null
   membership: { id: string; organizationId: string; role: Role } | null
-  organization: { id: string; name: string; slug: string; timezone: string } | null
+  organization: {
+    id: string
+    name: string
+    slug: string
+    timezone: string
+    dailyScheduledMinutes: number
+    weeklyScheduledMinutes: number
+    legalHolidayDow: number
+  } | null
   // 切替候補となる、その user が所属する全組織
   availableOrganizations: AvailableOrganization[]
 }

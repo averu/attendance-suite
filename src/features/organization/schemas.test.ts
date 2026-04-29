@@ -54,23 +54,42 @@ describe('organization schemas', () => {
   })
 
   describe('UpdateOrganizationInputSchema', () => {
-    it('name + timezone', () => {
-      const r = UpdateOrganizationInputSchema.parse({
-        name: 'Test Co',
-        timezone: 'Asia/Tokyo',
-      })
+    const baseValid = {
+      name: 'Test Co',
+      timezone: 'Asia/Tokyo',
+      dailyScheduledMinutes: 480,
+      weeklyScheduledMinutes: 2400,
+      legalHolidayDow: 0,
+    }
+    it('完全な入力を受け入れる', () => {
+      const r = UpdateOrganizationInputSchema.parse(baseValid)
       expect(r.name).toBe('Test Co')
+      expect(r.dailyScheduledMinutes).toBe(480)
+      expect(r.legalHolidayDow).toBe(0)
     })
     it('name 空は reject', () => {
       expect(() =>
-        UpdateOrganizationInputSchema.parse({ name: '', timezone: 'Asia/Tokyo' }),
+        UpdateOrganizationInputSchema.parse({ ...baseValid, name: '' }),
       ).toThrow()
     })
     it('name 100 文字超は reject', () => {
       expect(() =>
         UpdateOrganizationInputSchema.parse({
+          ...baseValid,
           name: 'a'.repeat(101),
-          timezone: 'Asia/Tokyo',
+        }),
+      ).toThrow()
+    })
+    it('legalHolidayDow が範囲外 (7) は reject', () => {
+      expect(() =>
+        UpdateOrganizationInputSchema.parse({ ...baseValid, legalHolidayDow: 7 }),
+      ).toThrow()
+    })
+    it('dailyScheduledMinutes が負は reject', () => {
+      expect(() =>
+        UpdateOrganizationInputSchema.parse({
+          ...baseValid,
+          dailyScheduledMinutes: -1,
         }),
       ).toThrow()
     })

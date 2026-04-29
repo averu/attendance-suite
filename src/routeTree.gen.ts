@@ -20,6 +20,7 @@ import { Route as ApiSummaryMonthlyRouteImport } from './routes/api/summary/mont
 import { Route as ApiSummaryMineRouteImport } from './routes/api/summary/mine'
 import { Route as ApiSummaryLockRouteImport } from './routes/api/summary/lock'
 import { Route as ApiSummaryCsvRouteImport } from './routes/api/summary/csv'
+import { Route as ApiOrganizationUpdateMemberWorkProfileRouteImport } from './routes/api/organization/update-member-work-profile'
 import { Route as ApiOrganizationUpdateRouteImport } from './routes/api/organization/update'
 import { Route as ApiOrganizationRevokeInvitationRouteImport } from './routes/api/organization/revoke-invitation'
 import { Route as ApiOrganizationRemoveMemberRouteImport } from './routes/api/organization/remove-member'
@@ -34,6 +35,7 @@ import { Route as ApiLeaveRequestsListOrgRouteImport } from './routes/api/leave-
 import { Route as ApiLeaveRequestsListMineRouteImport } from './routes/api/leave-requests/list-mine'
 import { Route as ApiLeaveRequestsCreateRouteImport } from './routes/api/leave-requests/create'
 import { Route as ApiLeaveRequestsCancelRouteImport } from './routes/api/leave-requests/cancel'
+import { Route as ApiLeaveRequestsBalanceRouteImport } from './routes/api/leave-requests/balance'
 import { Route as ApiLeaveRequestsApproveRouteImport } from './routes/api/leave-requests/approve'
 import { Route as ApiHolidaysDeleteRouteImport } from './routes/api/holidays/delete'
 import { Route as ApiHolidaysCreateRouteImport } from './routes/api/holidays/create'
@@ -55,7 +57,9 @@ import { Route as ApiAttendanceBreakStartRouteImport } from './routes/api/attend
 import { Route as ApiAttendanceBreakEndRouteImport } from './routes/api/attendance/break-end'
 import { Route as ApiAttendanceAuditsRouteImport } from './routes/api/attendance/audits'
 import { Route as ApiAdminTodayRouteImport } from './routes/api/admin/today'
+import { Route as ApiAdminSaburokuRouteImport } from './routes/api/admin/saburoku'
 import { Route as ApiAdminRecentTrendRouteImport } from './routes/api/admin/recent-trend'
+import { Route as ApiAdminLeaveObligationsRouteImport } from './routes/api/admin/leave-obligations'
 import { Route as publicInviteTokenRouteImport } from './routes/(public)/invite.$token'
 import { Route as appAuthedProfileRouteImport } from './routes/(app)/_authed/profile'
 import { Route as appAuthedDashboardRouteImport } from './routes/(app)/_authed/dashboard'
@@ -132,6 +136,12 @@ const ApiSummaryCsvRoute = ApiSummaryCsvRouteImport.update({
   path: '/api/summary/csv',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiOrganizationUpdateMemberWorkProfileRoute =
+  ApiOrganizationUpdateMemberWorkProfileRouteImport.update({
+    id: '/api/organization/update-member-work-profile',
+    path: '/api/organization/update-member-work-profile',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiOrganizationUpdateRoute = ApiOrganizationUpdateRouteImport.update({
   id: '/api/organization/update',
   path: '/api/organization/update',
@@ -206,6 +216,11 @@ const ApiLeaveRequestsCreateRoute = ApiLeaveRequestsCreateRouteImport.update({
 const ApiLeaveRequestsCancelRoute = ApiLeaveRequestsCancelRouteImport.update({
   id: '/api/leave-requests/cancel',
   path: '/api/leave-requests/cancel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiLeaveRequestsBalanceRoute = ApiLeaveRequestsBalanceRouteImport.update({
+  id: '/api/leave-requests/balance',
+  path: '/api/leave-requests/balance',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiLeaveRequestsApproveRoute = ApiLeaveRequestsApproveRouteImport.update({
@@ -319,11 +334,22 @@ const ApiAdminTodayRoute = ApiAdminTodayRouteImport.update({
   path: '/api/admin/today',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminSaburokuRoute = ApiAdminSaburokuRouteImport.update({
+  id: '/api/admin/saburoku',
+  path: '/api/admin/saburoku',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminRecentTrendRoute = ApiAdminRecentTrendRouteImport.update({
   id: '/api/admin/recent-trend',
   path: '/api/admin/recent-trend',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminLeaveObligationsRoute =
+  ApiAdminLeaveObligationsRouteImport.update({
+    id: '/api/admin/leave-obligations',
+    path: '/api/admin/leave-obligations',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const publicInviteTokenRoute = publicInviteTokenRouteImport.update({
   id: '/(public)/invite/$token',
   path: '/invite/$token',
@@ -448,7 +474,9 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof appAuthedDashboardRoute
   '/profile': typeof appAuthedProfileRoute
   '/invite/$token': typeof publicInviteTokenRoute
+  '/api/admin/leave-obligations': typeof ApiAdminLeaveObligationsRoute
   '/api/admin/recent-trend': typeof ApiAdminRecentTrendRoute
+  '/api/admin/saburoku': typeof ApiAdminSaburokuRoute
   '/api/admin/today': typeof ApiAdminTodayRoute
   '/api/attendance/audits': typeof ApiAttendanceAuditsRoute
   '/api/attendance/break-end': typeof ApiAttendanceBreakEndRoute
@@ -470,6 +498,7 @@ export interface FileRoutesByFullPath {
   '/api/holidays/create': typeof ApiHolidaysCreateRoute
   '/api/holidays/delete': typeof ApiHolidaysDeleteRoute
   '/api/leave-requests/approve': typeof ApiLeaveRequestsApproveRoute
+  '/api/leave-requests/balance': typeof ApiLeaveRequestsBalanceRoute
   '/api/leave-requests/cancel': typeof ApiLeaveRequestsCancelRoute
   '/api/leave-requests/create': typeof ApiLeaveRequestsCreateRoute
   '/api/leave-requests/list-mine': typeof ApiLeaveRequestsListMineRoute
@@ -484,6 +513,7 @@ export interface FileRoutesByFullPath {
   '/api/organization/remove-member': typeof ApiOrganizationRemoveMemberRoute
   '/api/organization/revoke-invitation': typeof ApiOrganizationRevokeInvitationRoute
   '/api/organization/update': typeof ApiOrganizationUpdateRoute
+  '/api/organization/update-member-work-profile': typeof ApiOrganizationUpdateMemberWorkProfileRoute
   '/api/summary/csv': typeof ApiSummaryCsvRoute
   '/api/summary/lock': typeof ApiSummaryLockRoute
   '/api/summary/mine': typeof ApiSummaryMineRoute
@@ -517,7 +547,9 @@ export interface FileRoutesByTo {
   '/dashboard': typeof appAuthedDashboardRoute
   '/profile': typeof appAuthedProfileRoute
   '/invite/$token': typeof publicInviteTokenRoute
+  '/api/admin/leave-obligations': typeof ApiAdminLeaveObligationsRoute
   '/api/admin/recent-trend': typeof ApiAdminRecentTrendRoute
+  '/api/admin/saburoku': typeof ApiAdminSaburokuRoute
   '/api/admin/today': typeof ApiAdminTodayRoute
   '/api/attendance/audits': typeof ApiAttendanceAuditsRoute
   '/api/attendance/break-end': typeof ApiAttendanceBreakEndRoute
@@ -539,6 +571,7 @@ export interface FileRoutesByTo {
   '/api/holidays/create': typeof ApiHolidaysCreateRoute
   '/api/holidays/delete': typeof ApiHolidaysDeleteRoute
   '/api/leave-requests/approve': typeof ApiLeaveRequestsApproveRoute
+  '/api/leave-requests/balance': typeof ApiLeaveRequestsBalanceRoute
   '/api/leave-requests/cancel': typeof ApiLeaveRequestsCancelRoute
   '/api/leave-requests/create': typeof ApiLeaveRequestsCreateRoute
   '/api/leave-requests/list-mine': typeof ApiLeaveRequestsListMineRoute
@@ -553,6 +586,7 @@ export interface FileRoutesByTo {
   '/api/organization/remove-member': typeof ApiOrganizationRemoveMemberRoute
   '/api/organization/revoke-invitation': typeof ApiOrganizationRevokeInvitationRoute
   '/api/organization/update': typeof ApiOrganizationUpdateRoute
+  '/api/organization/update-member-work-profile': typeof ApiOrganizationUpdateMemberWorkProfileRoute
   '/api/summary/csv': typeof ApiSummaryCsvRoute
   '/api/summary/lock': typeof ApiSummaryLockRoute
   '/api/summary/mine': typeof ApiSummaryMineRoute
@@ -587,7 +621,9 @@ export interface FileRoutesById {
   '/(app)/_authed/dashboard': typeof appAuthedDashboardRoute
   '/(app)/_authed/profile': typeof appAuthedProfileRoute
   '/(public)/invite/$token': typeof publicInviteTokenRoute
+  '/api/admin/leave-obligations': typeof ApiAdminLeaveObligationsRoute
   '/api/admin/recent-trend': typeof ApiAdminRecentTrendRoute
+  '/api/admin/saburoku': typeof ApiAdminSaburokuRoute
   '/api/admin/today': typeof ApiAdminTodayRoute
   '/api/attendance/audits': typeof ApiAttendanceAuditsRoute
   '/api/attendance/break-end': typeof ApiAttendanceBreakEndRoute
@@ -609,6 +645,7 @@ export interface FileRoutesById {
   '/api/holidays/create': typeof ApiHolidaysCreateRoute
   '/api/holidays/delete': typeof ApiHolidaysDeleteRoute
   '/api/leave-requests/approve': typeof ApiLeaveRequestsApproveRoute
+  '/api/leave-requests/balance': typeof ApiLeaveRequestsBalanceRoute
   '/api/leave-requests/cancel': typeof ApiLeaveRequestsCancelRoute
   '/api/leave-requests/create': typeof ApiLeaveRequestsCreateRoute
   '/api/leave-requests/list-mine': typeof ApiLeaveRequestsListMineRoute
@@ -623,6 +660,7 @@ export interface FileRoutesById {
   '/api/organization/remove-member': typeof ApiOrganizationRemoveMemberRoute
   '/api/organization/revoke-invitation': typeof ApiOrganizationRevokeInvitationRoute
   '/api/organization/update': typeof ApiOrganizationUpdateRoute
+  '/api/organization/update-member-work-profile': typeof ApiOrganizationUpdateMemberWorkProfileRoute
   '/api/summary/csv': typeof ApiSummaryCsvRoute
   '/api/summary/lock': typeof ApiSummaryLockRoute
   '/api/summary/mine': typeof ApiSummaryMineRoute
@@ -658,7 +696,9 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile'
     | '/invite/$token'
+    | '/api/admin/leave-obligations'
     | '/api/admin/recent-trend'
+    | '/api/admin/saburoku'
     | '/api/admin/today'
     | '/api/attendance/audits'
     | '/api/attendance/break-end'
@@ -680,6 +720,7 @@ export interface FileRouteTypes {
     | '/api/holidays/create'
     | '/api/holidays/delete'
     | '/api/leave-requests/approve'
+    | '/api/leave-requests/balance'
     | '/api/leave-requests/cancel'
     | '/api/leave-requests/create'
     | '/api/leave-requests/list-mine'
@@ -694,6 +735,7 @@ export interface FileRouteTypes {
     | '/api/organization/remove-member'
     | '/api/organization/revoke-invitation'
     | '/api/organization/update'
+    | '/api/organization/update-member-work-profile'
     | '/api/summary/csv'
     | '/api/summary/lock'
     | '/api/summary/mine'
@@ -727,7 +769,9 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile'
     | '/invite/$token'
+    | '/api/admin/leave-obligations'
     | '/api/admin/recent-trend'
+    | '/api/admin/saburoku'
     | '/api/admin/today'
     | '/api/attendance/audits'
     | '/api/attendance/break-end'
@@ -749,6 +793,7 @@ export interface FileRouteTypes {
     | '/api/holidays/create'
     | '/api/holidays/delete'
     | '/api/leave-requests/approve'
+    | '/api/leave-requests/balance'
     | '/api/leave-requests/cancel'
     | '/api/leave-requests/create'
     | '/api/leave-requests/list-mine'
@@ -763,6 +808,7 @@ export interface FileRouteTypes {
     | '/api/organization/remove-member'
     | '/api/organization/revoke-invitation'
     | '/api/organization/update'
+    | '/api/organization/update-member-work-profile'
     | '/api/summary/csv'
     | '/api/summary/lock'
     | '/api/summary/mine'
@@ -796,7 +842,9 @@ export interface FileRouteTypes {
     | '/(app)/_authed/dashboard'
     | '/(app)/_authed/profile'
     | '/(public)/invite/$token'
+    | '/api/admin/leave-obligations'
     | '/api/admin/recent-trend'
+    | '/api/admin/saburoku'
     | '/api/admin/today'
     | '/api/attendance/audits'
     | '/api/attendance/break-end'
@@ -818,6 +866,7 @@ export interface FileRouteTypes {
     | '/api/holidays/create'
     | '/api/holidays/delete'
     | '/api/leave-requests/approve'
+    | '/api/leave-requests/balance'
     | '/api/leave-requests/cancel'
     | '/api/leave-requests/create'
     | '/api/leave-requests/list-mine'
@@ -832,6 +881,7 @@ export interface FileRouteTypes {
     | '/api/organization/remove-member'
     | '/api/organization/revoke-invitation'
     | '/api/organization/update'
+    | '/api/organization/update-member-work-profile'
     | '/api/summary/csv'
     | '/api/summary/lock'
     | '/api/summary/mine'
@@ -864,7 +914,9 @@ export interface RootRouteChildren {
   ApiMeRoute: typeof ApiMeRouteWithChildren
   publicIndexRoute: typeof publicIndexRoute
   publicInviteTokenRoute: typeof publicInviteTokenRoute
+  ApiAdminLeaveObligationsRoute: typeof ApiAdminLeaveObligationsRoute
   ApiAdminRecentTrendRoute: typeof ApiAdminRecentTrendRoute
+  ApiAdminSaburokuRoute: typeof ApiAdminSaburokuRoute
   ApiAdminTodayRoute: typeof ApiAdminTodayRoute
   ApiAttendanceAuditsRoute: typeof ApiAttendanceAuditsRoute
   ApiAttendanceBreakEndRoute: typeof ApiAttendanceBreakEndRoute
@@ -886,6 +938,7 @@ export interface RootRouteChildren {
   ApiHolidaysCreateRoute: typeof ApiHolidaysCreateRoute
   ApiHolidaysDeleteRoute: typeof ApiHolidaysDeleteRoute
   ApiLeaveRequestsApproveRoute: typeof ApiLeaveRequestsApproveRoute
+  ApiLeaveRequestsBalanceRoute: typeof ApiLeaveRequestsBalanceRoute
   ApiLeaveRequestsCancelRoute: typeof ApiLeaveRequestsCancelRoute
   ApiLeaveRequestsCreateRoute: typeof ApiLeaveRequestsCreateRoute
   ApiLeaveRequestsListMineRoute: typeof ApiLeaveRequestsListMineRoute
@@ -898,6 +951,7 @@ export interface RootRouteChildren {
   ApiOrganizationRemoveMemberRoute: typeof ApiOrganizationRemoveMemberRoute
   ApiOrganizationRevokeInvitationRoute: typeof ApiOrganizationRevokeInvitationRoute
   ApiOrganizationUpdateRoute: typeof ApiOrganizationUpdateRoute
+  ApiOrganizationUpdateMemberWorkProfileRoute: typeof ApiOrganizationUpdateMemberWorkProfileRoute
   ApiSummaryCsvRoute: typeof ApiSummaryCsvRoute
   ApiSummaryLockRoute: typeof ApiSummaryLockRoute
   ApiSummaryMineRoute: typeof ApiSummaryMineRoute
@@ -982,6 +1036,13 @@ declare module '@tanstack/react-router' {
       path: '/api/summary/csv'
       fullPath: '/api/summary/csv'
       preLoaderRoute: typeof ApiSummaryCsvRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/organization/update-member-work-profile': {
+      id: '/api/organization/update-member-work-profile'
+      path: '/api/organization/update-member-work-profile'
+      fullPath: '/api/organization/update-member-work-profile'
+      preLoaderRoute: typeof ApiOrganizationUpdateMemberWorkProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/organization/update': {
@@ -1080,6 +1141,13 @@ declare module '@tanstack/react-router' {
       path: '/api/leave-requests/cancel'
       fullPath: '/api/leave-requests/cancel'
       preLoaderRoute: typeof ApiLeaveRequestsCancelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/leave-requests/balance': {
+      id: '/api/leave-requests/balance'
+      path: '/api/leave-requests/balance'
+      fullPath: '/api/leave-requests/balance'
+      preLoaderRoute: typeof ApiLeaveRequestsBalanceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/leave-requests/approve': {
@@ -1229,11 +1297,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminTodayRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/saburoku': {
+      id: '/api/admin/saburoku'
+      path: '/api/admin/saburoku'
+      fullPath: '/api/admin/saburoku'
+      preLoaderRoute: typeof ApiAdminSaburokuRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/recent-trend': {
       id: '/api/admin/recent-trend'
       path: '/api/admin/recent-trend'
       fullPath: '/api/admin/recent-trend'
       preLoaderRoute: typeof ApiAdminRecentTrendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/leave-obligations': {
+      id: '/api/admin/leave-obligations'
+      path: '/api/admin/leave-obligations'
+      fullPath: '/api/admin/leave-obligations'
+      preLoaderRoute: typeof ApiAdminLeaveObligationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/(public)/invite/$token': {
@@ -1478,7 +1560,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiMeRoute: ApiMeRouteWithChildren,
   publicIndexRoute: publicIndexRoute,
   publicInviteTokenRoute: publicInviteTokenRoute,
+  ApiAdminLeaveObligationsRoute: ApiAdminLeaveObligationsRoute,
   ApiAdminRecentTrendRoute: ApiAdminRecentTrendRoute,
+  ApiAdminSaburokuRoute: ApiAdminSaburokuRoute,
   ApiAdminTodayRoute: ApiAdminTodayRoute,
   ApiAttendanceAuditsRoute: ApiAttendanceAuditsRoute,
   ApiAttendanceBreakEndRoute: ApiAttendanceBreakEndRoute,
@@ -1500,6 +1584,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiHolidaysCreateRoute: ApiHolidaysCreateRoute,
   ApiHolidaysDeleteRoute: ApiHolidaysDeleteRoute,
   ApiLeaveRequestsApproveRoute: ApiLeaveRequestsApproveRoute,
+  ApiLeaveRequestsBalanceRoute: ApiLeaveRequestsBalanceRoute,
   ApiLeaveRequestsCancelRoute: ApiLeaveRequestsCancelRoute,
   ApiLeaveRequestsCreateRoute: ApiLeaveRequestsCreateRoute,
   ApiLeaveRequestsListMineRoute: ApiLeaveRequestsListMineRoute,
@@ -1512,6 +1597,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiOrganizationRemoveMemberRoute: ApiOrganizationRemoveMemberRoute,
   ApiOrganizationRevokeInvitationRoute: ApiOrganizationRevokeInvitationRoute,
   ApiOrganizationUpdateRoute: ApiOrganizationUpdateRoute,
+  ApiOrganizationUpdateMemberWorkProfileRoute:
+    ApiOrganizationUpdateMemberWorkProfileRoute,
   ApiSummaryCsvRoute: ApiSummaryCsvRoute,
   ApiSummaryLockRoute: ApiSummaryLockRoute,
   ApiSummaryMineRoute: ApiSummaryMineRoute,

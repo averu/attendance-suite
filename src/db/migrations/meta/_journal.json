@@ -29,6 +29,20 @@
       "when": 1777418056188,
       "tag": "0003_minor_starfox",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1777429485618,
+      "tag": "0004_wakeful_veda",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1777429772271,
+      "tag": "0005_huge_bulldozer",
+      "breakpoints": true
     }
   ]
 }

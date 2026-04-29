@@ -19,6 +19,10 @@ const sample: OrgMonthlySummary = {
       overtimeMinutes: 360, // 6:00
       paidLeaveDays: 1.5,
       otherLeaveDays: 0,
+      legalOvertimeMinutes: 360,
+      legalOvertimeOver60Minutes: 0,
+      lateNightMinutes: 0,
+      legalHolidayWorkedMinutes: 0,
     },
     {
       userId: 'u_2',
@@ -30,6 +34,10 @@ const sample: OrgMonthlySummary = {
       overtimeMinutes: 0,
       paidLeaveDays: 0,
       otherLeaveDays: 2,
+      legalOvertimeMinutes: 0,
+      legalOvertimeOver60Minutes: 0,
+      lateNightMinutes: 0,
+      legalHolidayWorkedMinutes: 0,
     },
   ],
 }
@@ -44,7 +52,7 @@ describe('summaryToCsv', () => {
     const out = summaryToCsv(sample)
     const header = out.replace(CSV_BOM, '').split('\r\n')[0]
     expect(header).toBe(
-      '年月,User ID,氏名,Email,出勤日数,有給休暇日数,その他休暇日数,労働分,労働 (HH:MM),残業分,残業 (HH:MM),休憩分,休憩 (HH:MM)',
+      '年月,User ID,氏名,Email,出勤日数,有給休暇日数,その他休暇日数,労働分,労働 (HH:MM),法定外残業分,法定外残業 (HH:MM),月60h超 法定外分,月60h超 法定外 (HH:MM),深夜帯 分,深夜帯 (HH:MM),法定休日労働分,法定休日労働 (HH:MM),休憩分,休憩 (HH:MM)',
     )
   })
 
@@ -53,14 +61,35 @@ describe('summaryToCsv', () => {
     const lines = out.replace(CSV_BOM, '').split('\r\n').filter(Boolean)
     expect(lines[1]).toContain('山田太郎')
     expect(lines[1]).toBe(
-      '2026-04,u_1,山田太郎,taro@example.com,20,1.5,0,9600,160:00,360,6:00,1200,20:00',
+      '2026-04,u_1,山田太郎,taro@example.com,20,1.5,0,9600,160:00,360,6:00,0,0:00,0,0:00,0,0:00,1200,20:00',
     )
   })
 
-  it('残業 0 は "0" / "0:00" として出力される', () => {
+  it('労基法内訳ゼロは "0" / "0:00" として出力される', () => {
     const out = summaryToCsv(sample)
     const lines = out.replace(CSV_BOM, '').split('\r\n').filter(Boolean)
-    expect(lines[2]).toContain(',0,0:00,')
+    // u_2 行: 法定外残業 + 60h超 + 深夜 + 法休 すべて 0
+    expect(lines[2]).toMatch(/,0,0:00,0,0:00,0,0:00,0,0:00,/)
+  })
+
+  it('労基法内訳に値がある場合は分と HH:MM を両方出力', () => {
+    const withValues: OrgMonthlySummary = {
+      ...sample,
+      members: [
+        {
+          ...sample.members[0]!,
+          legalOvertimeMinutes: 360,
+          legalOvertimeOver60Minutes: 60,
+          lateNightMinutes: 120,
+          legalHolidayWorkedMinutes: 480,
+        },
+      ],
+    }
+    const out = summaryToCsv(withValues)
+    const lines = out.replace(CSV_BOM, '').split('\r\n').filter(Boolean)
+    expect(lines[1]).toBe(
+      '2026-04,u_1,山田太郎,taro@example.com,20,1.5,0,9600,160:00,360,6:00,60,1:00,120,2:00,480,8:00,1200,20:00',
+    )
   })
 
   it('カンマを含むセル (氏名 "Lee, Min") は引用符で囲まれる', () => {

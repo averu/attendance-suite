@@ -6,6 +6,7 @@ import type {
   InviteInput,
   RemoveMemberInput,
   RevokeInvitationInput,
+  UpdateMemberWorkProfileInput,
   UpdateOrganizationInput,
 } from './schemas'
 
@@ -68,6 +69,22 @@ export function useRemoveMember() {
       postJson<{ ok: true }>('/api/organization/remove-member', input),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['organization', 'members'] })
+    },
+  })
+}
+
+export function useUpdateMemberWorkProfile() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: UpdateMemberWorkProfileInput) =>
+      postJson<{ ok: true }>(
+        '/api/organization/update-member-work-profile',
+        input,
+      ),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['organization', 'members'] })
+      // 残高にも影響するので invalidate
+      qc.invalidateQueries({ queryKey: ['leave-requests', 'my-balance'] })
     },
   })
 }

@@ -37,3 +37,52 @@ export const LEAVE_STATUS_LABEL: Record<LeaveStatus, string> = {
   rejected: '却下',
   cancelled: 'キャンセル',
 }
+
+// /api/admin/leave-obligations のレスポンス (org 単位)
+export type OrgPaidLeaveObligationDTO = {
+  userId: string
+  userName: string
+  userEmail: string
+  isUnconfigured: boolean
+  obligations: Array<{
+    grantDate: string
+    periodEndDate: string
+    obligedDays: number
+    takenDays: number
+    isPeriodEnded: boolean
+    status: 'compliant' | 'violation' | 'pending'
+  }>
+  violationCount: number
+  pendingCount: number
+}
+
+// /api/leave-requests/balance のレスポンス
+export type PaidLeaveBalanceDTO =
+  | { status: 'UNCONFIGURED' }
+  | {
+      status: 'OK'
+      asOfDate: string
+      hireDate: string
+      weeklyScheduledDays: number
+      weeklyScheduledHours: number
+      grants: Array<{
+        grantDate: string
+        expiresAt: string
+        grantedDays: number
+        usedDays: number
+        remainingDays: number
+        isExpired: boolean
+      }>
+      totalGrantedActiveDays: number
+      totalUsedDays: number
+      remainingDays: number
+      unallocatedUsedDays: number
+      annualObligation: Array<{
+        grantDate: string
+        periodEndDate: string
+        obligedDays: number
+        takenDays: number
+        isPeriodEnded: boolean
+        status: 'compliant' | 'violation' | 'pending'
+      }>
+    }

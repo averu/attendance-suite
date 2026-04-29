@@ -1,5 +1,13 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { CalendarCheck, CalendarOff, Clock, Plane, Timer } from 'lucide-react'
+import {
+  AlertTriangle,
+  CalendarCheck,
+  CalendarOff,
+  Clock,
+  Moon,
+  Plane,
+  Timer,
+} from 'lucide-react'
 import { summaryQueries } from '../queries'
 import {
   Card,
@@ -54,15 +62,38 @@ export function MyMonthlySummaryCard({ yearMonth }: { yearMonth: string }) {
             />
             <Stat
               icon={<Timer className="size-4" />}
-              label="残業"
-              value={fmtMinutes(m.overtimeMinutes)}
-              highlight={m.overtimeMinutes > 0}
+              label="法定外残業"
+              value={fmtMinutes(m.legalOvertimeMinutes)}
+              highlight={m.legalOvertimeMinutes > 0}
             />
             <Stat
               icon={<Plane className="size-4" />}
               label="有給"
               value={`${fmtDays(m.paidLeaveDays)} 日`}
             />
+            {m.legalOvertimeOver60Minutes > 0 && (
+              <Stat
+                icon={<AlertTriangle className="size-4" />}
+                label="うち月60h超 (50%)"
+                value={fmtMinutes(m.legalOvertimeOver60Minutes)}
+                highlight
+              />
+            )}
+            {m.lateNightMinutes > 0 && (
+              <Stat
+                icon={<Moon className="size-4" />}
+                label="深夜 (22-5)"
+                value={fmtMinutes(m.lateNightMinutes)}
+              />
+            )}
+            {m.legalHolidayWorkedMinutes > 0 && (
+              <Stat
+                icon={<AlertTriangle className="size-4" />}
+                label="法定休日労働 (35%)"
+                value={fmtMinutes(m.legalHolidayWorkedMinutes)}
+                highlight
+              />
+            )}
             {m.otherLeaveDays > 0 && (
               <Stat
                 icon={<CalendarOff className="size-4" />}
