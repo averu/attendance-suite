@@ -20,3 +20,5 @@ export type {
   LeaveCheckMember,
   LeaveCheckResult,
 } from './canLeaveOrganization'
+export { categorizeInvitations } from './categorizeInvitations'
+export type { CategorizedInvitation } from './categorizeInvitations'

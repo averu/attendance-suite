@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useSuspenseQuery } from '@tanstack/react-query'
-import { Copy, Loader2, Send, Trash2 } from 'lucide-react'
+import { AlertTriangle, Copy, Loader2, Send, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useInviteMember, useRevokeInvitation } from '../mutations'
 import { organizationQueries } from '../queries'
+import { categorizeInvitations } from '../categorizeInvitations'
+import type { CategorizedInvitation } from '../categorizeInvitations'
 import type { InviteRole } from '../types'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
@@ -32,6 +34,18 @@ export function InviteForm() {
   const invite = useInviteMember()
   const revoke = useRevokeInvitation()
   const { data: invitations } = useSuspenseQuery(organizationQueries.invitations())
+
+  // 招待リストを期限基準で active / expired に分類。daysRemaining 等も付与される。
+  const { active, expired } = useMemo(
+    () => categorizeInvitations(invitations),
+    [invitations],
+  )
+
+  function copyInviteUrl(token: string) {
+    const url = `${window.location.origin}/invite/${token}`
+    navigator.clipboard.writeText(url)
+    toast.success('リンクをコピーしました')
+  }
 
   function onRevoke(invitationId: string, email: string) {
     if (!confirm(`${email} 宛の招待を削除しますか？`)) return
@@ -136,39 +150,116 @@ export function InviteForm() {
       <Card>
         <CardHeader>
           <CardTitle>未受諾の招待</CardTitle>
+          <CardDescription>
+            送信済みの招待リンクを再表示・コピー・削除できます
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          {invitations.length === 0 ? (
+        <CardContent className="grid gap-4">
+          {active.length === 0 && expired.length === 0 ? (
             <p className="text-muted-foreground text-sm">なし</p>
           ) : (
-            <ul className="grid gap-2 text-sm">
-              {invitations.map((i) => (
-                <li
-                  key={i.id}
-                  className="flex items-center justify-between border rounded-md p-3"
-                >
-                  <span>{i.email}</span>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">{i.role}</Badge>
-                    <span className="text-muted-foreground text-xs">
-                      {new Date(i.expiresAt).toLocaleDateString('ja-JP')} まで
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label={`${i.email} 宛の招待を削除`}
-                      disabled={revoke.isPending}
-                      onClick={() => onRevoke(i.id, i.email)}
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <>
+              {active.length > 0 && (
+                <ul className="grid gap-2 text-sm">
+                  {active.map((i) => (
+                    <InvitationRow
+                      key={i.id}
+                      invitation={i}
+                      onCopy={() => copyInviteUrl(i.token)}
+                      onRevoke={() => onRevoke(i.id, i.email)}
+                      revokePending={revoke.isPending}
+                    />
+                  ))}
+                </ul>
+              )}
+              {expired.length > 0 && (
+                <div className="grid gap-2">
+                  <h4 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                    <AlertTriangle className="size-3.5" />
+                    期限切れ ({expired.length})
+                  </h4>
+                  <ul className="grid gap-2 text-sm">
+                    {expired.map((i) => (
+                      <InvitationRow
+                        key={i.id}
+                        invitation={i}
+                        onCopy={() => copyInviteUrl(i.token)}
+                        onRevoke={() => onRevoke(i.id, i.email)}
+                        revokePending={revoke.isPending}
+                      />
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+function InvitationRow({
+  invitation: i,
+  onCopy,
+  onRevoke,
+  revokePending,
+}: {
+  invitation: CategorizedInvitation
+  onCopy: () => void
+  onRevoke: () => void
+  revokePending: boolean
+}) {
+  const dateLabel = new Date(i.expiresAt).toLocaleDateString('ja-JP')
+  const remainingLabel = i.isExpired
+    ? '期限切れ'
+    : i.daysRemaining <= 1
+      ? '本日中'
+      : `あと ${i.daysRemaining} 日`
+  return (
+    <li
+      className={
+        'flex flex-wrap items-center justify-between gap-2 border rounded-md p-3 ' +
+        (i.isExpired ? 'border-destructive/40 bg-destructive/5' : '')
+      }
+    >
+      <div className="flex items-center gap-2 min-w-0">
+        <span className="truncate">{i.email}</span>
+        <Badge variant={i.isExpired ? 'destructive' : 'outline'}>
+          {i.role}
+        </Badge>
+      </div>
+      <div className="flex items-center gap-2">
+        <span
+          className={
+            'text-xs ' +
+            (i.isExpired ? 'text-destructive' : 'text-muted-foreground')
+          }
+          title={`${dateLabel} まで`}
+        >
+          {remainingLabel}
+        </span>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          aria-label={`${i.email} 宛の招待リンクをコピー`}
+          disabled={i.isExpired}
+          onClick={onCopy}
+        >
+          <Copy className="size-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label={`${i.email} 宛の招待を削除`}
+          disabled={revokePending}
+          onClick={onRevoke}
+        >
+          <Trash2 className="size-4" />
+        </Button>
+      </div>
+    </li>
   )
 }

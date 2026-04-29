@@ -2,6 +2,7 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { correctionRequestQueries } from '../queries'
 import { useCancelCorrectionRequest } from '../mutations'
+import { formatProposedBreaks } from '../formatBreaks'
 import type { CorrectionStatus } from '../types'
 import {
   Table,
@@ -14,6 +15,15 @@ import {
 import { Card, CardContent } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'
 import { Badge } from '@/shared/ui/badge'
+
+function fmtTime(iso: string | null): string {
+  if (!iso) return '-'
+  return new Date(iso).toLocaleTimeString('ja-JP', {
+    timeZone: 'Asia/Tokyo',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
 
 const STATUS_LABEL: Record<CorrectionStatus, string> = {
   pending: '審査待ち',
@@ -52,6 +62,7 @@ export function MyRequestList() {
           <TableHeader>
             <TableRow>
               <TableHead>対象日</TableHead>
+              <TableHead>希望</TableHead>
               <TableHead>理由</TableHead>
               <TableHead>状態</TableHead>
               <TableHead>作成日</TableHead>
@@ -62,6 +73,19 @@ export function MyRequestList() {
             {items.map((r) => (
               <TableRow key={r.id}>
                 <TableCell className="font-mono">{r.targetDate}</TableCell>
+                <TableCell className="font-mono text-xs">
+                  <div className="grid gap-0.5">
+                    <span>
+                      出勤: {fmtTime(r.proposedClockInAt)} / 退勤:{' '}
+                      {fmtTime(r.proposedClockOutAt)}
+                    </span>
+                    {formatProposedBreaks(r.proposedBreaks).map((l, i) => (
+                      <span key={i} className="text-muted-foreground">
+                        休憩: {l}
+                      </span>
+                    ))}
+                  </div>
+                </TableCell>
                 <TableCell className="max-w-xs truncate">{r.reason}</TableCell>
                 <TableCell>
                   <Badge variant={STATUS_VARIANT[r.status]}>

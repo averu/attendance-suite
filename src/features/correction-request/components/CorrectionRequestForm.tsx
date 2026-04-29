@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useCreateCorrectionRequest } from '../mutations'
+import type { ProposedBreak } from '../types'
 import {
   Card,
   CardContent,
@@ -21,13 +22,42 @@ function toIsoOrNull(date: string, time: string): string | null {
   return new Date(`${date}T${time}:00+09:00`).toISOString()
 }
 
+type BreakRow = { startTime: string; endTime: string }
+
+// state の break 行を proposedBreaks (API 型) に変換する。
+// - startTime 空 → 行ごと無視 (UI でまだ入力していない空行を許容)
+// - endTime 空 → endAt は null を送る (まだ休憩中 / 終了未定の表現)
+function toProposedBreaks(date: string, rows: BreakRow[]): ProposedBreak[] | null {
+  const out: ProposedBreak[] = []
+  for (const r of rows) {
+    if (!r.startTime) continue
+    const startAt = toIsoOrNull(date, r.startTime)
+    if (!startAt) continue
+    out.push({ startAt, endAt: toIsoOrNull(date, r.endTime) })
+  }
+  return out.length > 0 ? out : null
+}
+
 export function CorrectionRequestForm({ defaultDate }: { defaultDate: string }) {
   const navigate = useNavigate()
   const create = useCreateCorrectionRequest()
   const [targetDate, setTargetDate] = useState(defaultDate)
   const [clockIn, setClockIn] = useState('')
   const [clockOut, setClockOut] = useState('')
+  const [breaks, setBreaks] = useState<BreakRow[]>([])
   const [reason, setReason] = useState('')
+
+  function addBreak() {
+    setBreaks((prev) => [...prev, { startTime: '', endTime: '' }])
+  }
+  function removeBreak(idx: number) {
+    setBreaks((prev) => prev.filter((_, i) => i !== idx))
+  }
+  function updateBreak(idx: number, patch: Partial<BreakRow>) {
+    setBreaks((prev) =>
+      prev.map((row, i) => (i === idx ? { ...row, ...patch } : row)),
+    )
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -36,7 +66,7 @@ export function CorrectionRequestForm({ defaultDate }: { defaultDate: string }) 
         targetDate,
         proposedClockInAt: toIsoOrNull(targetDate, clockIn),
         proposedClockOutAt: toIsoOrNull(targetDate, clockOut),
-        proposedBreaks: null,
+        proposedBreaks: toProposedBreaks(targetDate, breaks),
         reason,
       })
       toast.success('申請を送信しました')
@@ -85,6 +115,76 @@ export function CorrectionRequestForm({ defaultDate }: { defaultDate: string }) 
                 onChange={(e) => setClockOut(e.target.value)}
               />
             </div>
+          </div>
+          <div className="grid gap-2">
+            <div className="flex items-center justify-between">
+              <Label>休憩希望</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addBreak}
+              >
+                <Plus className="size-4" />
+                追加
+              </Button>
+            </div>
+            {breaks.length === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                休憩がない場合は空のままでも申請できます
+              </p>
+            ) : (
+              <ul className="grid gap-2">
+                {breaks.map((row, idx) => (
+                  <li
+                    key={idx}
+                    className="grid grid-cols-[1fr_1fr_auto] gap-2 items-end"
+                  >
+                    <div className="grid gap-1">
+                      <Label
+                        htmlFor={`break-start-${idx}`}
+                        className="text-xs text-muted-foreground"
+                      >
+                        開始
+                      </Label>
+                      <Input
+                        id={`break-start-${idx}`}
+                        type="time"
+                        value={row.startTime}
+                        onChange={(e) =>
+                          updateBreak(idx, { startTime: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div className="grid gap-1">
+                      <Label
+                        htmlFor={`break-end-${idx}`}
+                        className="text-xs text-muted-foreground"
+                      >
+                        終了
+                      </Label>
+                      <Input
+                        id={`break-end-${idx}`}
+                        type="time"
+                        value={row.endTime}
+                        onChange={(e) =>
+                          updateBreak(idx, { endTime: e.target.value })
+                        }
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`休憩 ${idx + 1} を削除`}
+                      onClick={() => removeBreak(idx)}
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="reason">理由</Label>

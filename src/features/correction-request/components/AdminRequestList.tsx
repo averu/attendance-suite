@@ -2,6 +2,7 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import { Check, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { correctionRequestQueries } from '../queries'
+import { formatProposedBreaks } from '../formatBreaks'
 import {
   useApproveCorrectionRequest,
   useRejectCorrectionRequest,
@@ -54,6 +55,7 @@ export function AdminRequestList() {
               <TableHead>理由</TableHead>
               <TableHead>出勤希望</TableHead>
               <TableHead>退勤希望</TableHead>
+              <TableHead>休憩希望</TableHead>
               <TableHead className="w-44">操作</TableHead>
             </TableRow>
           </TableHeader>
@@ -68,6 +70,19 @@ export function AdminRequestList() {
                 </TableCell>
                 <TableCell className="font-mono text-xs">
                   {fmtTime(r.proposedClockOutAt)}
+                </TableCell>
+                <TableCell className="font-mono text-xs">
+                  {(() => {
+                    const lines = formatProposedBreaks(r.proposedBreaks)
+                    if (lines.length === 0) return '-'
+                    return (
+                      <div className="grid gap-0.5">
+                        {lines.map((l, i) => (
+                          <span key={i}>{l}</span>
+                        ))}
+                      </div>
+                    )
+                  })()}
                 </TableCell>
                 <TableCell className="flex gap-2">
                   <Button
